@@ -2,6 +2,8 @@ package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "products")
 public class Product {
@@ -12,17 +14,19 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
-    @Column
+    @Column(length = 1000)
     private String description;
 
     @Column(nullable = false)
-    private double price;
+    private BigDecimal price;
 
-    @Column(name = "inventory_count", nullable = false)
-    private Integer inventoryCount;
+    @Column(nullable = false)
+    private int inventoryCount;
 
-    @Column(name = "image_url")
     private String imageUrl;
 
-    // Constructors, getters, and setters
+    // Relationship with DesignerProfile if needed
+    // Relationship with Feedback if needed
+
+    // Getters and setters
 }
