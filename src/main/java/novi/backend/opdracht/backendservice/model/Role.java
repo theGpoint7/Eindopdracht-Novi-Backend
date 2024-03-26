@@ -13,7 +13,7 @@ public class Role {
     @Id
     private String rolename;
     @ManyToMany(mappedBy = "roles")
-    private Collection<User> users;
+    private Collectionac<User> users;
 
     public String getRolename() {
         return rolename;

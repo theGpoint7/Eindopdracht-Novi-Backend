@@ -12,8 +12,7 @@ public class HelloController {
     public String sayHello() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth.getPrincipal() instanceof UserDetails) {
-            UserDetails ud = (UserDetails) auth.getPrincipal();
+        if (auth.getPrincipal() instanceof UserDetails ud) {
             return "Hello " + ud.getUsername();
         }
         else {

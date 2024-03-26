@@ -1,1 +1,1 @@
-insert into roles(rolename) values ('ROLE_USER'), ('ROLE_ADMIN');
+insert into roles(rolename) values ('ROLE_USER'), ('ROLE_ADMIN'), ('ROLE_DESIGNER');

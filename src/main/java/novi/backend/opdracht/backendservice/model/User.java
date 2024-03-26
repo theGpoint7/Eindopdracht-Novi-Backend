@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.util.Collection;
 
 @Entity
-// tablename in meervoud
+
 @Table(name="users")
 public class User {
     @Id
