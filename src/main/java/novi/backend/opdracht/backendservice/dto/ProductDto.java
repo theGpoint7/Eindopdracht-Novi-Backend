@@ -1,34 +1,27 @@
-package novi.backend.opdracht.backendservice.model;
+package novi.backend.opdracht.backendservice.dto;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
+public class ProductDto {
     private String name;
-
-    @Column(length = 1000)
     private String description;
-
-    @Column(nullable = false)
     private BigDecimal price;
-
-    @Column(nullable = false)
     private int inventoryCount;
-
     private String imageUrl;
 
-    // Getters
-    public Long getId() {
-        return id;
+    // Default constructor for JSON deserialization
+    public ProductDto() {}
+
+    // Constructor with all fields
+    public ProductDto(String name, String description, BigDecimal price, int inventoryCount, String imageUrl) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.inventoryCount = inventoryCount;
+        this.imageUrl = imageUrl;
     }
 
+    // Getters
     public String getName() {
         return name;
     }
@@ -50,10 +43,6 @@ public class Product {
     }
 
     // Setters
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -73,7 +62,4 @@ public class Product {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
-
-    // If you decide to add relationships to DesignerProfile or Feedback,
-    // remember to include the corresponding JPA annotations and methods here.
 }

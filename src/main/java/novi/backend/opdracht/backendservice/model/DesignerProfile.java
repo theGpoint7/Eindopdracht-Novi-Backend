@@ -2,7 +2,6 @@ package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
 
-
 @Entity
 @Table(name = "designer_profiles")
 public class DesignerProfile {
@@ -11,16 +10,15 @@ public class DesignerProfile {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "username", referencedColumnName = "username")
+    @JoinColumn(name = "user_id", referencedColumnName = "userId")
     private User user;
 
     @Column(nullable = false)
     private String storeName;
 
-    @Column(length = 1000) // Assuming a bio will be a longer text
+    @Column(length = 1000)
     private String bio;
 
-    // Portfolio can be a collection of Products, but for simplicity let's leave it as a text field
     @Column(length = 1000)
     private String portfolio;
 
