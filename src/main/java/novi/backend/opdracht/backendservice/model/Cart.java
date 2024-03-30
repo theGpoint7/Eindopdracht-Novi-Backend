@@ -12,7 +12,8 @@ public class Cart {
     private Long id;
 
     @OneToOne
-    private User user; // Can be null for anonymous users
+    @JoinColumn(name = "userId") // Specify the join column name
+    private User userId;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
@@ -22,8 +23,8 @@ public class Cart {
     public Cart() {
     }
 
-    public Cart(User user) {
-        this.user = user;
+    public Cart(User userId) {
+        this.userId = userId;
     }
 
     // Getters and Setters
@@ -36,12 +37,12 @@ public class Cart {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public User getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(User userId) {
+        this.userId = userId;
     }
 
     public List<CartItem> getItems() {

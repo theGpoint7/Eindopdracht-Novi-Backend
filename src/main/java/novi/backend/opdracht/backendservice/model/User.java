@@ -24,8 +24,8 @@ public class User {
     )
     private Collection<Role> roles;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Cart cart;
+    @OneToOne(mappedBy = "userId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Cart cart; // Corrected property name
 
     // getters and setters
 
