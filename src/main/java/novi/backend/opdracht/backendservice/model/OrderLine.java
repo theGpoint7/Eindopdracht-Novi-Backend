@@ -1,6 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -33,7 +34,7 @@ public class OrderLine {
         this.order = order;
         this.product = product;
         this.quantity = quantity;
-        this.unitPrice = unitPrice;
+        this.unitPrice = product.getPrice();
     }
 
     // Getters and Setters

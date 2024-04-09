@@ -6,14 +6,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table (name = "carts")
 public class Cart {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userId;
 
     @OneToOne
-    @JoinColumn(name = "userId") // Specify the join column name
-    private User userId;
+    @MapsId
+    @JoinColumn(name = "userId")
+    private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
@@ -23,26 +24,26 @@ public class Cart {
     public Cart() {
     }
 
-    public Cart(User userId) {
-        this.userId = userId;
+    public Cart(User user) {
+        this.user = user;
     }
 
     // Getters and Setters
 
     public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUserId() {
         return userId;
     }
 
-    public void setUser(User userId) {
-        this.userId = userId;
+    public void setId(Long id) {
+        this.userId = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public List<CartItem> getItems() {

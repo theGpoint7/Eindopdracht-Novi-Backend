@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.controller;
 
-import novi.backend.opdracht.backendservice.dto.CartTransferDto;
 import novi.backend.opdracht.backendservice.dto.CartItemDto;
+import novi.backend.opdracht.backendservice.dto.CartTransferDto;
 import novi.backend.opdracht.backendservice.model.Cart;
 import novi.backend.opdracht.backendservice.model.CartItem;
 import novi.backend.opdracht.backendservice.model.Product;
@@ -42,7 +42,7 @@ public class CartController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found.");
         }
 
-        Optional<Cart> optionalCart = cartRepository.findByUserId(user);
+        Optional<Cart> optionalCart = cartRepository.findByUserId(user.getUserId());
         Cart cart = optionalCart.orElseGet(() -> {
             Cart newCart = new Cart();
             newCart.setUser(user);

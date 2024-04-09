@@ -59,4 +59,8 @@ public class DesignerRequest {
     public void setKvk(String kvk) {
         this.kvk = kvk;
     }
+
+    public Long getId() {
+        return id;
+    }
 }

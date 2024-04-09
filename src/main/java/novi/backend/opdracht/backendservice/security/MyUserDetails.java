@@ -5,7 +5,6 @@ import novi.backend.opdracht.backendservice.model.User;
 import novi.backend.opdracht.backendservice.model.UserCredentials;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;

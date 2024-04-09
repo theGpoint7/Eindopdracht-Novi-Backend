@@ -1,6 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
+
 import java.util.Collection;
 
 @Entity
@@ -24,7 +25,7 @@ public class User {
     )
     private Collection<Role> roles;
 
-    @OneToOne(mappedBy = "userId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Cart cart; // Corrected property name
 
     // getters and setters

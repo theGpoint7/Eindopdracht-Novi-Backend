@@ -1,13 +1,11 @@
 package novi.backend.opdracht.backendservice.controller;
 
-import novi.backend.opdracht.backendservice.dto.UserDto;
-import novi.backend.opdracht.backendservice.dto.UserCredentialsDto;
-import novi.backend.opdracht.backendservice.dto.UserRegistrationDto;
 import novi.backend.opdracht.backendservice.dto.DesignerRequestDto;
-import novi.backend.opdracht.backendservice.model.Role;
-import novi.backend.opdracht.backendservice.model.User;
-import novi.backend.opdracht.backendservice.model.UserCredentials;
-import novi.backend.opdracht.backendservice.model.UserProfile;
+import novi.backend.opdracht.backendservice.dto.UserCredentialsDto;
+import novi.backend.opdracht.backendservice.dto.UserDto;
+import novi.backend.opdracht.backendservice.dto.UserRegistrationDto;
+import novi.backend.opdracht.backendservice.model.*;
+import novi.backend.opdracht.backendservice.repository.DesignerRequestRepository;
 import novi.backend.opdracht.backendservice.repository.RoleRepository;
 import novi.backend.opdracht.backendservice.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +15,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import novi.backend.opdracht.backendservice.model.DesignerRequest;
-import novi.backend.opdracht.backendservice.model.RequestStatus;
-import novi.backend.opdracht.backendservice.repository.DesignerRequestRepository;
-
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 @RestController
 public class UserController {
@@ -71,10 +67,6 @@ public class UserController {
             roleRepo.findByRolename(fullRoleName).ifPresent(userRoles::add);
         }
 
-        // Ensure ADMIN users also have the USER role
-        if (userRoles.stream().anyMatch(role -> "ROLE_ADMIN".equals(role.getRolename()))) {
-            roleRepo.findByRolename("ROLE_USER").ifPresent(userRoles::add); // Add USER role if not present
-        }
         newUser.setRoles(userRoles);
 
         userRepo.save(newUser);

@@ -3,6 +3,7 @@ package novi.backend.opdracht.backendservice.dto;
 import java.math.BigDecimal;
 
 public class ProductDto {
+    private Long id;
     private String name;
     private String description;
     private BigDecimal price;
@@ -13,7 +14,8 @@ public class ProductDto {
     public ProductDto() {}
 
     // Constructor with all fields
-    public ProductDto(String name, String description, BigDecimal price, int inventoryCount, String imageUrl) {
+    public ProductDto(Long id, String name, String description, BigDecimal price, int inventoryCount, String imageUrl) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
@@ -22,6 +24,10 @@ public class ProductDto {
     }
 
     // Getters
+    public Long getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
     }
@@ -43,6 +49,10 @@ public class ProductDto {
     }
 
     // Setters
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public void setName(String name) {
         this.name = name;
     }

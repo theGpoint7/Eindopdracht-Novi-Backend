@@ -1,7 +1,6 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,11 +18,25 @@ public class Order {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "order_date")
     private LocalDateTime orderDate;
 
-    private BigDecimal totalAmount;
+    private BigDecimal subtotal;
 
-    private String status;
+    private BigDecimal shippingCosts;
+
+    private BigDecimal total;
+
+    @ManyToOne
+    @JoinColumn(name = "payment_method_id") // Assuming "payment_method_id" is the column name in the "orders" table
+    private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status")
+    private PaymentStatus paymentStatus;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderLine> orderLines = new ArrayList<>();
@@ -34,11 +47,11 @@ public class Order {
         // Default constructor
     }
 
-    public Order(User user, LocalDateTime orderDate, BigDecimal totalAmount, String status) {
+    public Order(User user, LocalDateTime orderDate, OrderStatus status) {
         this.user = user;
         this.orderDate = orderDate;
-        this.totalAmount = totalAmount;
-        this.status = status;
+        this.status = OrderStatus.PENDING;
+        this.paymentStatus = PaymentStatus.PENDING;
     }
 
     // Getters and Setters
@@ -67,20 +80,52 @@ public class Order {
         this.orderDate = orderDate;
     }
 
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
+    public BigDecimal getSubtotal() {
+        return subtotal;
     }
 
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
     }
 
-    public String getStatus() {
+    public BigDecimal getShippingCosts() {
+        return shippingCosts;
+    }
+
+    public void setShippingCosts(BigDecimal shippingCosts) {
+        this.shippingCosts = shippingCosts;
+    }
+
+    public BigDecimal getTotal() {
+        return total;
+    }
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public OrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 
     public List<OrderLine> getOrderLines() {

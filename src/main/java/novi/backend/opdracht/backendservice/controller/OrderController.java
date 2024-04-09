@@ -1,16 +1,32 @@
 package novi.backend.opdracht.backendservice.controller;
 
-import novi.backend.opdracht.backendservice.model.Order;
-import novi.backend.opdracht.backendservice.model.OrderLine;
+import novi.backend.opdracht.backendservice.dto.OrderDto;
+import novi.backend.opdracht.backendservice.dto.OrderLineDto;
+import novi.backend.opdracht.backendservice.dto.PaymentMethodDto;
+import novi.backend.opdracht.backendservice.dto.ProductDto;
+import novi.backend.opdracht.backendservice.model.*;
+import novi.backend.opdracht.backendservice.repository.CartRepository;
 import novi.backend.opdracht.backendservice.repository.OrderRepository;
+import novi.backend.opdracht.backendservice.repository.PaymentMethodRepository;
+import novi.backend.opdracht.backendservice.repository.ProductRepository;
+import novi.backend.opdracht.backendservice.repository.UserRepository;
+import novi.backend.opdracht.backendservice.service.EmailService;
+import novi.backend.opdracht.backendservice.service.OrderService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -19,96 +35,173 @@ public class OrderController {
     @Autowired
     private OrderRepository orderRepository;
 
-    @PostMapping("/create")
-    public ResponseEntity<?> createOrder(@RequestBody Order order) {
-        // Here you can do any necessary validations before saving
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private CartRepository cartRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PaymentMethodRepository paymentMethodRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @PostMapping("/createFromCart")
+    public ResponseEntity<?> createOrderFromCart(@RequestBody OrderDto orderDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found.");
+        }
+
+        // Retrieve cart for the user
+        Cart cart = user.getCart();
+        if (cart == null || cart.getItems().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cart is empty. Cannot create order.");
+        }
+
+        List<CartItem> cartItems = cart.getItems();
+
+        BigDecimal subtotal = calculateSubtotal(cartItems);
+        BigDecimal shippingCosts = orderService.calculateShippingCosts(cartItems);
+
+        BigDecimal total = subtotal.add(shippingCosts);
+
+        // Get the paymentMethodName from the DTO
+        String paymentMethodName = orderDto.getPaymentMethod();
+        if (paymentMethodName == null || paymentMethodName.isEmpty()) {
+            return ResponseEntity.badRequest().body("Payment method name is required.");
+        }
+
+        // Check if the provided payment method exists in the database
+        Optional<PaymentMethod> optionalPaymentMethod = paymentMethodRepository.findByMethodName(paymentMethodName);
+        if (optionalPaymentMethod.isEmpty()) {
+            // Handle the case where the payment method does not exist
+            // For example, set a default payment method or return an error
+            return ResponseEntity.badRequest().body("Payment method not found with name: " + paymentMethodName);
+        }
+
+        PaymentMethod paymentMethod = optionalPaymentMethod.get();
+
+        // Convert cart items to OrderLineDto objects and add to OrderDto
+        List<OrderLineDto> orderLines = cart.getItems().stream()
+                .map(cartItem -> {
+                    OrderLineDto orderLineDto = new OrderLineDto();
+                    ProductDto productDto = new ProductDto();
+                    Product cartProduct = cartItem.getProduct(); // Get the product from cartItem
+                    productDto.setId(cartProduct.getId());
+                    productDto.setName(cartProduct.getName());
+                    productDto.setDescription(cartProduct.getDescription()); // Set description from cartProduct
+                    productDto.setPrice(cartProduct.getPrice());
+                    productDto.setInventoryCount(cartProduct.getInventoryCount());
+                    productDto.setImageUrl(cartProduct.getImageUrl());
+                    orderLineDto.setProduct(productDto);
+                    orderLineDto.setQuantity(cartItem.getQuantity());
+                    return orderLineDto;
+                })
+                .collect(Collectors.toList());
+
+        // Set the order lines in the OrderDto
+        orderDto.setOrderLines(orderLines);
+
+        // Create the order
+        Order order = new Order();
+        order.setUser(user);
+        order.setOrderLines(orderDto.getOrderLines().stream()
+                .map(orderLineDto -> {
+                    OrderLine orderLine = new OrderLine();
+                    ProductDto productDto = orderLineDto.getProduct();
+                    // Here we fetch the product from the repository based on the ID
+                    Product product = productRepository.findById(productDto.getId()).orElse(null);
+                    if (product == null) {
+                        // Handle product not found error
+                        throw new RuntimeException("Product not found with ID: " + productDto.getId());
+                    }
+                    orderLine.setProduct(product);
+                    orderLine.setQuantity(orderLineDto.getQuantity());
+                    orderLine.setUnitPrice(product.getPrice()); // Set unit price based on product price
+                    orderLine.setOrder(order);
+                    // Set other order line details
+                    return orderLine;
+                })
+                .collect(Collectors.toList()));
+        order.setSubtotal(subtotal);
+        order.setShippingCosts(shippingCosts);
+        order.setPaymentStatus(PaymentStatus.PENDING); // Or set the appropriate status
+        order.setOrderDate(LocalDateTime.now());
+        order.setTotal(total);
+        order.setPaymentMethod(paymentMethod);
+        order.setStatus(OrderStatus.PENDING); // Set status as "Pending" for the new order
+
+        // Save the order
         Order savedOrder = orderRepository.save(order);
-        return ResponseEntity.ok().body(savedOrder);
+
+        // Convert the savedOrder to DTO
+        OrderDto savedOrderDto = convertToDto(savedOrder);
+
+        return ResponseEntity.ok().body(savedOrderDto);
     }
 
-    @GetMapping("/view/{orderId}")
-    public ResponseEntity<?> viewOrder(@PathVariable Long orderId) {
-        Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        if (optionalOrder.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
-        }
-
-        Order order = optionalOrder.get();
-        return ResponseEntity.ok().body(order);
-    }
-
-    @PutMapping("/update/{orderId}")
-    public ResponseEntity<?> updateOrder(@PathVariable Long orderId, @RequestBody Order updatedOrder) {
-        Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        if (optionalOrder.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
-        }
-
-        Order order = optionalOrder.get();
-        // Update order details
-        order.setOrderLines(updatedOrder.getOrderLines());
-        // You can add more update logic here based on your requirements
-
-        Order savedOrder = orderRepository.save(order);
-        return ResponseEntity.ok().body(savedOrder);
-    }
-
-    @DeleteMapping("/delete/{orderId}")
-    public ResponseEntity<?> deleteOrder(@PathVariable Long orderId) {
-        Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        if (optionalOrder.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
-        }
-
-        orderRepository.deleteById(orderId);
-        return ResponseEntity.ok().body("Order deleted successfully");
-    }
-
-    @GetMapping("/total/{orderId}")
-    public ResponseEntity<?> calculateTotalPrice(@PathVariable Long orderId) {
-        Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        if (optionalOrder.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
-        }
-
-        Order order = optionalOrder.get();
-        BigDecimal total = order.getOrderLines().stream()
-                .map(orderLine -> orderLine.getUnitPrice().multiply(BigDecimal.valueOf(orderLine.getQuantity())))
+    // Helper method to calculate subtotal
+    private BigDecimal calculateSubtotal(List<CartItem> cartItems) {
+        return cartItems.stream()
+                .map(cartItem -> cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return ResponseEntity.ok().body("Total Price: " + total);
     }
 
-    @PostMapping("/{orderId}/addOrderLine")
-    public ResponseEntity<?> addOrderLineToOrder(@PathVariable Long orderId, @RequestBody OrderLine orderLine) {
-        Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        if (optionalOrder.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
+    // Convert to DTO
+    private OrderDto convertToDto(Order order) {
+        OrderDto orderDto = new OrderDto();
+        orderDto.setId(order.getId());
+
+
+        // Set the order date to current timestamp if it's null
+        if (orderDto.getOrderDate() == null) {
+            orderDto.setOrderDate(LocalDateTime.now());
         }
 
-        Order order = optionalOrder.get();
-        order.addOrderLine(orderLine);
-        orderRepository.save(order);
+        orderDto.setUser(order.getUser().getUserProfile().getFirstName() + " " +
+                order.getUser().getUserProfile().getLastName());
+        orderDto.setOrderAddress(order.getUser().getUserProfile().getAddress());
+        orderDto.setOrderLines(order.getOrderLines().stream()
+                .map(this::convertOrderLineToDto)
+                .collect(Collectors.toList()));
+        orderDto.setSubtotal(order.getSubtotal());
+        orderDto.setShippingCosts(order.getShippingCosts());
+        orderDto.setTotal(order.getTotal());
+        orderDto.setPaymentMethod(order.getPaymentMethod().getMethodName());
 
-        return ResponseEntity.ok().body("OrderLine added to Order successfully");
+        // Set the payment status to "PENDING" if it's null
+        if (order.getPaymentStatus() == null) {
+            orderDto.setPaymentStatus(PaymentStatus.PENDING);
+        } else {
+            orderDto.setPaymentStatus(order.getPaymentStatus());
+        }
+
+        return orderDto;
     }
 
-    @DeleteMapping("/{orderId}/orderLines/{orderLineId}")
-    public ResponseEntity<?> removeOrderLine(@PathVariable Long orderId, @PathVariable Long orderLineId) {
-        Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        if (optionalOrder.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
-        }
-
-        Order order = optionalOrder.get();
-
-        // Call the removeOrderLineById method from the Order class
-        order.removeOrderLineById(orderLineId);
-
-        // Save the updated order
-        orderRepository.save(order);
-
-        return ResponseEntity.ok().body("OrderLine with ID " + orderLineId + " removed from the order");
+    private OrderLineDto convertOrderLineToDto(OrderLine orderLine) {
+        OrderLineDto orderLineDto = new OrderLineDto();
+        ProductDto productDto = new ProductDto();
+        productDto.setId(orderLine.getProduct().getId());
+        productDto.setName(orderLine.getProduct().getName());
+        productDto.setDescription(orderLine.getProduct().getDescription());
+        productDto.setPrice(orderLine.getProduct().getPrice());
+        productDto.setInventoryCount(orderLine.getProduct().getInventoryCount());
+        productDto.setImageUrl(orderLine.getProduct().getImageUrl());
+        orderLineDto.setProduct(productDto);
+        orderLineDto.setQuantity(orderLine.getQuantity());
+        return orderLineDto;
     }
 
     // Getters and Setters

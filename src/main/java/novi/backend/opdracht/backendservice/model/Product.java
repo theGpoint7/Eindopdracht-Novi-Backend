@@ -1,6 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 
 @Entity

@@ -4,16 +4,18 @@ import novi.backend.opdracht.backendservice.model.*;
 import novi.backend.opdracht.backendservice.repository.DesignerRequestRepository;
 import novi.backend.opdracht.backendservice.repository.RoleRepository;
 import novi.backend.opdracht.backendservice.repository.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @RestController
 public class AdminController {
@@ -29,7 +31,25 @@ public class AdminController {
         this.roleRepo = roleRepo;
     }
 
-    // @PreAuthorize("hasRole('ADMIN')") // remove this?
+    @GetMapping("/admin/designer-requests")
+    public ResponseEntity<?> getAllDesignerRequests() {
+        Iterable<DesignerRequest> designerRequestsIterable = designerRequestRepo.findAll();
+        List<String> formattedRequests = StreamSupport.stream(designerRequestsIterable.spliterator(), false)
+                .map(request -> {
+                    UserCredentials credentials = request.getUser().getUserCredentials();
+                    String username = credentials.getUsername();
+                    String kvk = request.getKvk();
+                    RequestStatus status = request.getStatus();
+                    Long requestId = request.getId();
+                    return "Request id: " + requestId + " Requested by: " + username + ", KVK: " + kvk + ", Status: " + status.toString();
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(formattedRequests);
+    }
+
+
+
     @PutMapping("/admin/designer-requests/{requestId}")
     public ResponseEntity<?> reviewDesignerRequest(@PathVariable Long requestId, @RequestParam("status") String status) {
         DesignerRequest request = designerRequestRepo.findById(requestId)
