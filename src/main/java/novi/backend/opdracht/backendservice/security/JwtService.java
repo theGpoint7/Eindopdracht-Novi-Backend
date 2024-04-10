@@ -2,6 +2,7 @@ package novi.backend.opdracht.backendservice.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import io.jsonwebtoken.io.Decoders;
 
 @Service
 public class JwtService {
@@ -53,7 +53,7 @@ public class JwtService {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
-        long validPeriod = 1000 * 60 * 60 * 24; // 1 day in milliseconds
+        long validPeriod = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
         long currentTime = System.currentTimeMillis();
         Date issuedAt = new Date(currentTime);
         Date expiration = new Date(currentTime + validPeriod);

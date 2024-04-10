@@ -1,26 +1,25 @@
-package novi.backend.opdracht.backendservice.dto;
+package novi.backend.opdracht.backendservice.model;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.persistence.*;
 
-public class UserDto {
+@Entity
+@Table(name = "user_profile")
+public class UserProfile {
+    @Id
     private Long userId;
-    private String[] roles;
-    @NotBlank
+
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "userId")
+    private User user;
+
     private String firstName;
-    @NotBlank
     private String lastName;
-    @NotBlank
-    @Email
     private String email;
-    @NotBlank
     private String address;
-    @NotBlank
     private String phoneNo;
 
-    // Constructors, Getters, and Setters
-    public UserDto() {}
-
+    // Getter and setter for userId
     public Long getUserId() {
         return userId;
     }
@@ -29,14 +28,16 @@ public class UserDto {
         this.userId = userId;
     }
 
-    public String[] getRoles() {
-        return roles;
+    // Getter and setter for user
+    public User getUser() {
+        return user;
     }
 
-    public void setRoles(String[] roles) {
-        this.roles = roles;
+    public void setUser(User user) {
+        this.user = user;
     }
 
+    // Getter and setter for firstName
     public String getFirstName() {
         return firstName;
     }
@@ -45,6 +46,7 @@ public class UserDto {
         this.firstName = firstName;
     }
 
+    // Getter and setter for lastName
     public String getLastName() {
         return lastName;
     }
@@ -53,6 +55,7 @@ public class UserDto {
         this.lastName = lastName;
     }
 
+    // Getter and setter for email
     public String getEmail() {
         return email;
     }
@@ -61,6 +64,7 @@ public class UserDto {
         this.email = email;
     }
 
+    // Getter and setter for address
     public String getAddress() {
         return address;
     }
@@ -69,6 +73,7 @@ public class UserDto {
         this.address = address;
     }
 
+    // Getter and setter for phoneNo
     public String getPhoneNo() {
         return phoneNo;
     }

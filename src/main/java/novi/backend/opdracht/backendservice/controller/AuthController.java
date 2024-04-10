@@ -1,6 +1,8 @@
 package novi.backend.opdracht.backendservice.controller;
 
 import novi.backend.opdracht.backendservice.dto.AuthDto;
+import novi.backend.opdracht.backendservice.model.User;
+import novi.backend.opdracht.backendservice.repository.UserRepository;
 import novi.backend.opdracht.backendservice.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,22 +17,31 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 @RestController
 public class AuthController {
 
     private final JwtService jwtService;
-
-    // Removed direct field injection and moved to constructor for clarity
     private final AuthenticationManager authManager;
+    private final UserRepository userRepository;
 
     @Autowired // This can be omitted if you're using constructor injection only
-    public AuthController(AuthenticationManager man, JwtService service) {
+    public AuthController(AuthenticationManager man, JwtService service, UserRepository userRepository) {
         this.authManager = man;
         this.jwtService = service;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/auth")
     public ResponseEntity<Object> signIn(@RequestBody AuthDto authDto) {
+        Optional<User> userOptional = userRepository.findByUsername(authDto.username);
+
+        // Check if user exists
+        if (userOptional.isEmpty()) {
+            return new ResponseEntity<>("User not found", HttpStatus.UNAUTHORIZED);
+        }
+
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(authDto.username, authDto.password);
 

@@ -2,8 +2,6 @@ package novi.backend.opdracht.backendservice.security;
 
 
 import novi.backend.opdracht.backendservice.repository.UserRepository;
-
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -39,14 +37,15 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/users", "/auth").permitAll()
-                        .requestMatchers("/secret").hasRole("ADMIN")
-
+                        .requestMatchers(HttpMethod.POST, "/api/orders/createFromCart").authenticated() // Secure this endpoint
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtRequestFilter(jwtService, userDetailsService()), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManagerBean(AuthenticationConfiguration authenticationConfiguration) throws Exception {
