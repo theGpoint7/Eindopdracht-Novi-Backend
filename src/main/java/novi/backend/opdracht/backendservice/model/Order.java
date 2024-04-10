@@ -28,7 +28,7 @@ public class Order {
     private BigDecimal total;
 
     @ManyToOne
-    @JoinColumn(name = "payment_method_id") // Assuming "payment_method_id" is the column name in the "orders" table
+    @JoinColumn(name = "payment_method_id")
     private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
@@ -40,6 +40,9 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderLine> orderLines = new ArrayList<>();
+
+    @Column(name = "delivery_address")
+    private String deliveryAddress;
 
     // Constructors
 
@@ -134,6 +137,14 @@ public class Order {
 
     public void setOrderLines(List<OrderLine> orderLines) {
         this.orderLines = orderLines;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
     }
 
     // Helper Methods

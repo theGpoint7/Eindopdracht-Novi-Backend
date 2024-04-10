@@ -24,9 +24,7 @@ public class DesignerRequest {
     private LocalDate dateOfRequest;
 
     @Column(nullable = false)
-    private String kvk; // Justification or unique identifier for the request
-
-    // Getters and setters
+    private String kvk;
 
     public User getUser() {
         return user;

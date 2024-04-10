@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.dto;
 
 public class DesignerRequestDto {
-    private String kvk; // Justification for the request
+    private String kvk;
 
     // Constructors, getters, and setters
     public DesignerRequestDto() {}

@@ -10,15 +10,15 @@ public class OrderDto {
     private Long id;
     private LocalDateTime orderDate;
     private String user;
-    private String orderAddress;
+    private String deliveryAddress; // Changed from customDeliveryAddress
     private List<OrderLineDto> orderLines;
     private BigDecimal subtotal;
     private BigDecimal shippingCosts;
     private BigDecimal total;
-    private String paymentMethod; // Change type to String
+    private String paymentMethod;
     private PaymentStatus paymentStatus;
 
-    // getters and setters
+    // Getters and setters
 
     public Long getId() {
         return id;
@@ -44,12 +44,12 @@ public class OrderDto {
         this.user = user;
     }
 
-    public String getOrderAddress() {
-        return orderAddress;
+    public String getDeliveryAddress() {
+        return deliveryAddress;
     }
 
-    public void setOrderAddress(String orderAddress) {
-        this.orderAddress = orderAddress;
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
     }
 
     public List<OrderLineDto> getOrderLines() {
@@ -88,7 +88,7 @@ public class OrderDto {
         return paymentMethod;
     }
 
-    public void setPaymentMethod(String paymentMethod) { // Change type to String
+    public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
 

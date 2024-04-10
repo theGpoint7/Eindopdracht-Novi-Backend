@@ -2,7 +2,6 @@ package novi.backend.opdracht.backendservice.controller;
 
 import novi.backend.opdracht.backendservice.dto.OrderDto;
 import novi.backend.opdracht.backendservice.dto.OrderLineDto;
-import novi.backend.opdracht.backendservice.dto.PaymentMethodDto;
 import novi.backend.opdracht.backendservice.dto.ProductDto;
 import novi.backend.opdracht.backendservice.model.*;
 import novi.backend.opdracht.backendservice.repository.CartRepository;
@@ -22,9 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -85,15 +82,20 @@ public class OrderController {
         // Check if the provided payment method exists in the database
         Optional<PaymentMethod> optionalPaymentMethod = paymentMethodRepository.findByMethodName(paymentMethodName);
         if (optionalPaymentMethod.isEmpty()) {
-            // Handle the case where the payment method does not exist
-            // For example, set a default payment method or return an error
             return ResponseEntity.badRequest().body("Payment method not found with name: " + paymentMethodName);
         }
 
         PaymentMethod paymentMethod = optionalPaymentMethod.get();
 
+        String customDeliveryAddress = orderDto.getDeliveryAddress();
+
+        // Set delivery address based on custom or user's default address
+        String deliveryAddress = customDeliveryAddress != null && !customDeliveryAddress.isEmpty()
+                ? customDeliveryAddress
+                : user.getUserProfile().getAddress();
+
         // Convert cart items to OrderLineDto objects and add to OrderDto
-        List<OrderLineDto> orderLines = cart.getItems().stream()
+        List<OrderLineDto> orderLines = cartItems.stream()
                 .map(cartItem -> {
                     OrderLineDto orderLineDto = new OrderLineDto();
                     ProductDto productDto = new ProductDto();
@@ -141,9 +143,17 @@ public class OrderController {
         order.setTotal(total);
         order.setPaymentMethod(paymentMethod);
         order.setStatus(OrderStatus.PENDING); // Set status as "Pending" for the new order
+        order.setDeliveryAddress(deliveryAddress); // Set delivery address
+
+        // Log the delivery address to ensure it's correct
+        System.out.println("Delivery Address: " + deliveryAddress);
 
         // Save the order
         Order savedOrder = orderRepository.save(order);
+
+        // Clear the user's cart
+        cart.getItems().clear();
+        cartRepository.save(cart);
 
         // Convert the savedOrder to DTO
         OrderDto savedOrderDto = convertToDto(savedOrder);
@@ -163,7 +173,6 @@ public class OrderController {
         OrderDto orderDto = new OrderDto();
         orderDto.setId(order.getId());
 
-
         // Set the order date to current timestamp if it's null
         if (orderDto.getOrderDate() == null) {
             orderDto.setOrderDate(LocalDateTime.now());
@@ -171,7 +180,7 @@ public class OrderController {
 
         orderDto.setUser(order.getUser().getUserProfile().getFirstName() + " " +
                 order.getUser().getUserProfile().getLastName());
-        orderDto.setOrderAddress(order.getUser().getUserProfile().getAddress());
+        orderDto.setDeliveryAddress(order.getDeliveryAddress()); // Use delivery address
         orderDto.setOrderLines(order.getOrderLines().stream()
                 .map(this::convertOrderLineToDto)
                 .collect(Collectors.toList()));
@@ -179,13 +188,6 @@ public class OrderController {
         orderDto.setShippingCosts(order.getShippingCosts());
         orderDto.setTotal(order.getTotal());
         orderDto.setPaymentMethod(order.getPaymentMethod().getMethodName());
-
-        // Set the payment status to "PENDING" if it's null
-        if (order.getPaymentStatus() == null) {
-            orderDto.setPaymentStatus(PaymentStatus.PENDING);
-        } else {
-            orderDto.setPaymentStatus(order.getPaymentStatus());
-        }
 
         return orderDto;
     }
