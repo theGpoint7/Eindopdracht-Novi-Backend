@@ -2,21 +2,24 @@ package novi.backend.opdracht.backendservice.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class UserDto {
-    private Long userId;
-    private String[] roles;
+    public Long userId;
+    public String[] roles;
     @NotBlank
-    private String firstName;
+    @Size(min = 2, max = 128, message = "geen spaties, grootte tussen 2 en 128 karakters")
+    public String firstName;
     @NotBlank
-    private String lastName;
+    @Size(min = 2, max = 128, message = "geen spaties, grootte tussen 2 en 128 karakters")
+    public String lastName;
     @NotBlank
     @Email
-    private String email;
+    public String email;
     @NotBlank
-    private String address;
+    public String address;
     @NotBlank
-    private String phoneNo;
+    public String phoneNo;
 
     // Constructors, Getters, and Setters
     public UserDto() {}

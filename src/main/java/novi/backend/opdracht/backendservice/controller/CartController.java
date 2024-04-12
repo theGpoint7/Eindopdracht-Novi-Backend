@@ -171,8 +171,8 @@ public class CartController {
 
         // Calculate the total price of all items in the cart
         BigDecimal total = cart.getItems().stream()
-                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(item -> item.getProduct().getPrice())
+                .reduce();
 
         return ResponseEntity.ok().body("Total Price: " + total);
     }

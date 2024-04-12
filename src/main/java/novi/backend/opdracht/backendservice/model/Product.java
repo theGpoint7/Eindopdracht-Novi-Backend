@@ -2,8 +2,6 @@ package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
-
 @Entity
 @Table(name = "products")
 public class Product {
@@ -18,7 +16,7 @@ public class Product {
     private String description;
 
     @Column(nullable = false)
-    private BigDecimal price;
+    private double price;
 
     @Column(nullable = false)
     private int inventoryCount;
@@ -38,7 +36,7 @@ public class Product {
         return description;
     }
 
-    public BigDecimal getPrice() {
+    public double getPrice() {
         return price;
     }
 
@@ -63,7 +61,7 @@ public class Product {
         this.description = description;
     }
 
-    public void setPrice(BigDecimal price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 

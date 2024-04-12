@@ -1,7 +1,6 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
-
 import java.util.Collection;
 
 @Entity
@@ -11,11 +10,23 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserCredentials userCredentials;
+    @Column
+    private String firstName;
+
+    @Column
+    private String lastName;
+
+    @Column(unique = true)
+    private String email;
+
+    @Column
+    private String address;
+
+    @Column
+    private String phoneNo;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserProfile userProfile;
+    private UserCredentials userCredentials;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -38,20 +49,52 @@ public class User {
         this.userId = userId;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPhoneNo() {
+        return phoneNo;
+    }
+
+    public void setPhoneNo(String phoneNo) {
+        this.phoneNo = phoneNo;
+    }
+
     public UserCredentials getUserCredentials() {
         return userCredentials;
     }
 
     public void setUserCredentials(UserCredentials userCredentials) {
         this.userCredentials = userCredentials;
-    }
-
-    public UserProfile getUserProfile() {
-        return userProfile;
-    }
-
-    public void setUserProfile(UserProfile userProfile) {
-        this.userProfile = userProfile;
     }
 
     public Collection<Role> getRoles() {

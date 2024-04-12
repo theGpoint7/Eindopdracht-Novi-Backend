@@ -1,20 +1,25 @@
 package novi.backend.opdracht.backendservice.dto;
 
-import java.math.BigDecimal;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Min;
 
 public class ProductDto {
-    private Long id;
-    private String name;
-    private String description;
-    private BigDecimal price;
-    private int inventoryCount;
-    private String imageUrl;
+    public Long id;
+    @NotBlank
+    public String name;
+    public String description;
+    //ipv bigdecimal nu double
+    @Min(1)
+    public double price;
+    public int inventoryCount;
+    public String imageUrl;
 
     // Default constructor for JSON deserialization
     public ProductDto() {}
 
     // Constructor with all fields
-    public ProductDto(Long id, String name, String description, BigDecimal price, int inventoryCount, String imageUrl) {
+    public ProductDto(Long id, String name, String description, double price, int inventoryCount, String imageUrl) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -36,7 +41,7 @@ public class ProductDto {
         return description;
     }
 
-    public BigDecimal getPrice() {
+    public double getPrice() {
         return price;
     }
 
@@ -61,7 +66,7 @@ public class ProductDto {
         this.description = description;
     }
 
-    public void setPrice(BigDecimal price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 

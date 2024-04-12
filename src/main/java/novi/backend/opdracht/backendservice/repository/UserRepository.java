@@ -13,4 +13,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
     // Update this method to use a custom query
     @Query("SELECT u FROM User u WHERE u.userCredentials.username = :username")
     Optional<User> findByUsername(@Param("username") String username);
+
+    // Define a custom query method to check if a user with the given username exists
+    boolean existsByUserCredentials_Username(String username);
 }

@@ -92,7 +92,7 @@ public class OrderController {
         // Set delivery address based on custom or user's default address
         String deliveryAddress = customDeliveryAddress != null && !customDeliveryAddress.isEmpty()
                 ? customDeliveryAddress
-                : user.getUserProfile().getAddress();
+                : user.getAddress();
 
         // Convert cart items to OrderLineDto objects and add to OrderDto
         List<OrderLineDto> orderLines = cartItems.stream()
@@ -178,8 +178,8 @@ public class OrderController {
             orderDto.setOrderDate(LocalDateTime.now());
         }
 
-        orderDto.setUser(order.getUser().getUserProfile().getFirstName() + " " +
-                order.getUser().getUserProfile().getLastName());
+        orderDto.setUser(order.getUser().getFirstName() + " " +
+                order.getUser().getLastName());
         orderDto.setDeliveryAddress(order.getDeliveryAddress()); // Use delivery address
         orderDto.setOrderLines(order.getOrderLines().stream()
                 .map(this::convertOrderLineToDto)
