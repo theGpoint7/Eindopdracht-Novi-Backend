@@ -9,5 +9,4 @@ public class BackendServiceUniqueThreadsApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BackendServiceUniqueThreadsApplication.class, args);
 	}
-
 }

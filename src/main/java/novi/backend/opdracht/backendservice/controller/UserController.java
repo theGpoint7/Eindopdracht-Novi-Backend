@@ -1,95 +1,119 @@
 package novi.backend.opdracht.backendservice.controller;
 
-import novi.backend.opdracht.backendservice.dto.DesignerRequestDto;
-import novi.backend.opdracht.backendservice.dto.UserCredentialsDto;
-import novi.backend.opdracht.backendservice.dto.UserDto;
-import novi.backend.opdracht.backendservice.dto.UserRegistrationDto;
-import novi.backend.opdracht.backendservice.model.*;
-import novi.backend.opdracht.backendservice.repository.DesignerRequestRepository;
-import novi.backend.opdracht.backendservice.repository.RoleRepository;
-import novi.backend.opdracht.backendservice.repository.UserRepository;
+import jakarta.validation.Valid;
+import novi.backend.opdracht.backendservice.dto.input.*;
+import novi.backend.opdracht.backendservice.dto.output.UserResponse;
+import novi.backend.opdracht.backendservice.model.Role;
+import novi.backend.opdracht.backendservice.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.validation.FieldError;
 
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
+@CrossOrigin
 @RestController
+@RequestMapping(value = "/users")
 public class UserController {
-    private final UserRepository userRepo;
-    private final RoleRepository roleRepo;
-    private final PasswordEncoder encoder;
 
-    private final DesignerRequestRepository designerRequestRepo;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepo, RoleRepository roleRepo, PasswordEncoder encoder, DesignerRequestRepository designerRequestRepo) {
-        this.userRepo = userRepo;
-        this.roleRepo = roleRepo;
-        this.encoder = encoder;
-        this.designerRequestRepo = designerRequestRepo;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    @PostMapping("/users")
-    public ResponseEntity<String> createUser(@RequestBody UserRegistrationDto registrationDto) {
-        UserDto userDto = registrationDto.getUser();
-        UserCredentialsDto credentialsDto = registrationDto.getCredentials();
-
-        User newUser = new User();
-        UserCredentials newCredentials = new UserCredentials();
-        UserProfile newUserProfile = new UserProfile();
-
-        // Handling UserCredentials
-        newCredentials.setUsername(credentialsDto.getUsername());
-        newCredentials.setPasswordHash(encoder.encode(credentialsDto.getPassword()));
-        newUser.setUserCredentials(newCredentials);
-        newCredentials.setUser(newUser);
-
-        // Set UserProfile information from UserDto
-        // (Similar to how you've done for UserCredentials)
-        newUserProfile.setFirstName(userDto.getFirstName());
-        newUserProfile.setLastName(userDto.getLastName());
-        newUserProfile.setEmail(userDto.getEmail());
-        newUserProfile.setAddress(userDto.getAddress());
-        newUserProfile.setPhoneNo(userDto.getPhoneNo());
-        newUser.setUserProfile(newUserProfile);
-        newUserProfile.setUser(newUser);
-
-        // Handling roles with the "ROLE_" prefix
-        Set<Role> userRoles = new HashSet<>();
-        for (String roleName : userDto.getRoles()) {
-            String fullRoleName = "ROLE_" + roleName; // Prepending "ROLE_" to match the database entries
-            roleRepo.findByRolename(fullRoleName).ifPresent(userRoles::add);
-        }
-
-        newUser.setRoles(userRoles);
-
-        userRepo.save(newUser);
-
-        return ResponseEntity.ok("User created successfully!");
+    @GetMapping(value = "/all")
+    public ResponseEntity<List<UserResponse>> getUsers() {
+        List<UserResponse> userResponses = userService.getUsers();
+        return ResponseEntity.ok().body(userResponses);
     }
 
-    @PostMapping("/users/{userId}/designer-requests")
-    public ResponseEntity<?> submitDesignerRequest(@PathVariable Long userId, @RequestBody DesignerRequestDto requestDto) {
-        Optional<User> userOptional = userRepo.findById(userId);
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("User not found");
+    @GetMapping(value = "/{username}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable("username") String username) {
+        UserResponse userResponse = userService.getUser(username);
+        return ResponseEntity.ok().body(userResponse);
+    }
+
+    @PostMapping(value = "")
+    public ResponseEntity<String> createUser(@Valid @RequestBody UserRequest request, BindingResult result) {
+        if (result.hasFieldErrors()) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (FieldError fe : result.getFieldErrors()) {
+                stringBuilder.append(fe.getField()).append(": ");
+                stringBuilder.append(fe.getDefaultMessage());
+                stringBuilder.append("\n");
+            }
+            return ResponseEntity.badRequest().body(stringBuilder.toString());
         }
-        User user = userOptional.get();
+        String newUsername = userService.createUser(request);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{username}")
+                .buildAndExpand(newUsername).toUri();
+        return ResponseEntity.created(location).build();
+    }
 
-        DesignerRequest newRequest = new DesignerRequest();
-        newRequest.setUser(user);
-        newRequest.setStatus(RequestStatus.PENDING);
-        newRequest.setDateOfRequest(LocalDate.now());
-        newRequest.setKvk(requestDto.getKvk());
+    @PutMapping(value = "/{username}/update-information")
+    public ResponseEntity<Object> updateUserInformation(@PathVariable("username") String username, @Valid @RequestBody UpdateUserRequest updateRequest, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                stringBuilder.append(fe.getField()).append(": ");
+                stringBuilder.append(fe.getDefaultMessage());
+                stringBuilder.append("\n");
+            }
+            return ResponseEntity.badRequest().body(stringBuilder.toString());
+        }
+        userService.updateUserInformation(username, updateRequest);
+        UserResponse updatedUser = userService.getUser(username);
+        return ResponseEntity.ok(updatedUser);
+    }
 
-        designerRequestRepo.save(newRequest);
 
-        return ResponseEntity.ok("Designer request submitted successfully");
+    @PutMapping(value = "/{username}/password")
+    public ResponseEntity<Object> updateUserPassword(@PathVariable("username") String username, @Valid @RequestBody PasswordUpdateRequest passwordUpdateRequest, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                stringBuilder.append(fe.getField()).append(": ");
+                stringBuilder.append(fe.getDefaultMessage());
+                stringBuilder.append("\n");
+            }
+            return ResponseEntity.badRequest().body(stringBuilder.toString());
+        }
+        userService.updateUserPassword(username, passwordUpdateRequest.getCurrentPassword(), passwordUpdateRequest.getNewPassword());
+        UserResponse updatedUser = userService.getUser(username);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+
+    @DeleteMapping(value = "/{username}/delete-account")
+    public ResponseEntity<Object> deleteUserAccount(@PathVariable("username") String username, @RequestBody DeleteAccountRequest deleteAccountRequest) {
+        userService.deleteUserAccount(username, deleteAccountRequest.getConfirmUsername(), deleteAccountRequest.getConfirmPassword());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/{username}/authorities")
+    public ResponseEntity<Object> getUserAuthorities(@PathVariable("username") String username) {
+        return ResponseEntity.ok().body(userService.getAuthorities(username));
+    }
+
+    @PostMapping(value = "/{username}/authorities")
+    public ResponseEntity<Object> addUserAuthority(@PathVariable("username") String username, @RequestBody Map<String, Object> fields) {
+        String authorityName = (String) fields.get("authority");
+        Role role = Role.valueOf(authorityName);
+        userService.addAuthority(username, role);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @DeleteMapping(value = "/{username}/authorities/{authority}")
+    public ResponseEntity<Object> deleteUserAuthority(@PathVariable("username") String username, @PathVariable("authority") Role authority) {
+        userService.removeAuthority(username, authority);
+        return ResponseEntity.noContent().build();
     }
 }
