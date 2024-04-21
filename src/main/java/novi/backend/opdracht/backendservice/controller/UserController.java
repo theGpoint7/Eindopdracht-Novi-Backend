@@ -1,96 +1,119 @@
 package novi.backend.opdracht.backendservice.controller;
 
 import jakarta.validation.Valid;
-import novi.backend.opdracht.backendservice.dto.DesignerRequestDto;
-import novi.backend.opdracht.backendservice.dto.UserDto;
-import novi.backend.opdracht.backendservice.dto.UserRegistrationDto;
+import novi.backend.opdracht.backendservice.dto.input.*;
+import novi.backend.opdracht.backendservice.dto.output.UserResponse;
+import novi.backend.opdracht.backendservice.model.Role;
 import novi.backend.opdracht.backendservice.service.UserService;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.validation.FieldError;
 
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
-import java.time.LocalDate;
-
+@CrossOrigin
 @RestController
+@RequestMapping(value = "/users")
 public class UserController {
 
     private final UserService userService;
+
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @PostMapping("/users")
-    public ResponseEntity<String> createUser(@Valid @RequestBody UserRegistrationDto registrationDto, BindingResult result) {
+    @GetMapping(value = "/all")
+    public ResponseEntity<List<UserResponse>> getUsers() {
+        List<UserResponse> userResponses = userService.getUsers();
+        return ResponseEntity.ok().body(userResponses);
+    }
+
+    @GetMapping(value = "/{username}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable("username") String username) {
+        UserResponse userResponse = userService.getUser(username);
+        return ResponseEntity.ok().body(userResponse);
+    }
+
+    @PostMapping(value = "")
+    public ResponseEntity<String> createUser(@Valid @RequestBody UserRequest request, BindingResult result) {
         if (result.hasFieldErrors()) {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
             for (FieldError fe : result.getFieldErrors()) {
-                sb.append(fe.getField() + ": ");
-                sb.append(fe.getDefaultMessage());
-                sb.append("/n");
+                stringBuilder.append(fe.getField()).append(": ");
+                stringBuilder.append(fe.getDefaultMessage());
+                stringBuilder.append("\n");
             }
-            return ResponseEntity.badRequest().body(sb.toString());
+            return ResponseEntity.badRequest().body(stringBuilder.toString());
         }
-        Long newUserId = userService.createUser(registrationDto);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "/users/" + newUserId);
-        return ResponseEntity.ok().headers(headers).body("User created successfully! ID: " + newUserId);
+        String newUsername = userService.createUser(request);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{username}")
+                .buildAndExpand(newUsername).toUri();
+        return ResponseEntity.created(location).build();
     }
 
-    @PostMapping("/users/{userId}/designer-requests")
-    public ResponseEntity<?> submitDesignerRequest(@PathVariable Long userId, @RequestBody DesignerRequestDto requestDto) {
-        Long newRequestId = userService.submitDesignerRequest(userId, requestDto);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "/users/" + userId + "/designer-requests/" + newRequestId);
-        return ResponseEntity.ok().headers(headers).body("Designer request submitted successfully! Request ID: " + newRequestId);
-    }
-
-    @PutMapping("/users/{userId}")
-    public ResponseEntity<String> updateUser(@PathVariable Long userId, @Valid @RequestBody UserDto userDto, BindingResult result) {
-        if (result.hasFieldErrors()) {
-            return ResponseEntity.badRequest().body("Validation errors: " + result.getAllErrors());
+    @PutMapping(value = "/{username}/update-information")
+    public ResponseEntity<Object> updateUserInformation(@PathVariable("username") String username, @Valid @RequestBody UpdateUserRequest updateRequest, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                stringBuilder.append(fe.getField()).append(": ");
+                stringBuilder.append(fe.getDefaultMessage());
+                stringBuilder.append("\n");
+            }
+            return ResponseEntity.badRequest().body(stringBuilder.toString());
         }
-        userService.updateUser(userId, userDto);
-        return ResponseEntity.ok("User updated successfully!");
+        userService.updateUserInformation(username, updateRequest);
+        UserResponse updatedUser = userService.getUser(username);
+        return ResponseEntity.ok(updatedUser);
     }
 
 
-    @DeleteMapping("/users/{userId}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
-        userService.deleteUser(userId);
-        return ResponseEntity.ok("User deleted successfully!");
+    @PutMapping(value = "/{username}/password")
+    public ResponseEntity<Object> updateUserPassword(@PathVariable("username") String username, @Valid @RequestBody PasswordUpdateRequest passwordUpdateRequest, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (FieldError fe : bindingResult.getFieldErrors()) {
+                stringBuilder.append(fe.getField()).append(": ");
+                stringBuilder.append(fe.getDefaultMessage());
+                stringBuilder.append("\n");
+            }
+            return ResponseEntity.badRequest().body(stringBuilder.toString());
+        }
+        userService.updateUserPassword(username, passwordUpdateRequest.getCurrentPassword(), passwordUpdateRequest.getNewPassword());
+        UserResponse updatedUser = userService.getUser(username);
+        return ResponseEntity.ok(updatedUser);
     }
 
-    @PostMapping("/users/{userId}/roles/{roleName}")
-    public ResponseEntity<String> addRoleToUser(@PathVariable Long userId, @PathVariable String roleName) {
-        userService.addRoleToUser(userId, roleName);
-        return ResponseEntity.ok("Role added to user successfully!");
+
+    @DeleteMapping(value = "/{username}/delete-account")
+    public ResponseEntity<Object> deleteUserAccount(@PathVariable("username") String username, @RequestBody DeleteAccountRequest deleteAccountRequest) {
+        userService.deleteUserAccount(username, deleteAccountRequest.getConfirmUsername(), deleteAccountRequest.getConfirmPassword());
+
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/users/{userId}/roles/{roleName}")
-    public ResponseEntity<String> removeRoleFromUser(@PathVariable Long userId, @PathVariable String roleName) {
-        userService.removeRoleFromUser(userId, roleName);
-        return ResponseEntity.ok("Role removed from user successfully!");
+    @GetMapping(value = "/{username}/authorities")
+    public ResponseEntity<Object> getUserAuthorities(@PathVariable("username") String username) {
+        return ResponseEntity.ok().body(userService.getAuthorities(username));
     }
 
-    @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    @PostMapping(value = "/{username}/authorities")
+    public ResponseEntity<Object> addUserAuthority(@PathVariable("username") String username, @RequestBody Map<String, Object> fields) {
+        String authorityName = (String) fields.get("authority");
+        Role role = Role.valueOf(authorityName);
+        userService.addAuthority(username, role);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<UserDto> getUserDto(@PathVariable Long userId) {
-        UserDto userDto = userService.getUser(userId);
-        return ResponseEntity.ok(userDto);
-    }
 
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<?> getUserById(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.findUserById(userId));
+    @DeleteMapping(value = "/{username}/authorities/{authority}")
+    public ResponseEntity<Object> deleteUserAuthority(@PathVariable("username") String username, @PathVariable("authority") Role authority) {
+        userService.removeAuthority(username, authority);
+        return ResponseEntity.noContent().build();
     }
 }

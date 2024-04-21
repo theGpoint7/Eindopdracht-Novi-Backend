@@ -1,14 +1,24 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
-import java.util.Collection;
+
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
 public class User {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    @Column(nullable = false, length = 255)
+    private String password;
+
+    @Column
+    private String email;
 
     @Column
     private String firstName;
@@ -16,8 +26,8 @@ public class User {
     @Column
     private String lastName;
 
-    @Column(unique = true)
-    private String email;
+    @Column
+    private LocalDate dateOfBirth;
 
     @Column
     private String address;
@@ -25,29 +35,29 @@ public class User {
     @Column
     private String phoneNo;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserCredentials userCredentials;
+    @Column
+    private LocalDate userCreatedOn;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "userId"),
-            inverseJoinColumns = @JoinColumn(name = "rolename")
-    )
-    private Collection<Role> roles;
+    @OneToMany(
+            targetEntity = Authority.class,
+            mappedBy = "username",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
+    private Set<Authority> authorities = new HashSet<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Cart cart; // Corrected property name
-
-    // getters and setters
-
-    public Long getUserId() {
-        return userId;
+    public String getUsername() { return username; }
+    public void setUsername(String username) {
+        this.username = username;
     }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public String getPassword() {
+        return password;
     }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email;}
 
     public String getFirstName() {
         return firstName;
@@ -65,12 +75,12 @@ public class User {
         this.lastName = lastName;
     }
 
-    public String getEmail() {
-        return email;
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 
     public String getAddress() {
@@ -89,27 +99,20 @@ public class User {
         this.phoneNo = phoneNo;
     }
 
-    public UserCredentials getUserCredentials() {
-        return userCredentials;
+    public LocalDate getUserCreatedOn() {
+        return userCreatedOn;
     }
 
-    public void setUserCredentials(UserCredentials userCredentials) {
-        this.userCredentials = userCredentials;
+    public void setUserCreatedOn(LocalDate userCreatedOn) {
+        this.userCreatedOn = userCreatedOn;
     }
 
-    public Collection<Role> getRoles() {
-        return roles;
+    public Set<Authority> getAuthorities() { return authorities; }
+    public void addAuthority(Authority authority) {
+        this.authorities.add(authority);
+    }
+    public void removeAuthority(Authority authority) {
+        this.authorities.remove(authority);
     }
 
-    public void setRoles(Collection<Role> roles) {
-        this.roles = roles;
-    }
-
-    public Cart getCart() {
-        return cart;
-    }
-
-    public void setCart(Cart cart) {
-        this.cart = cart;
-    }
 }
