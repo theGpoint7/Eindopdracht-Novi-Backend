@@ -1,14 +1,17 @@
 package novi.backend.opdracht.backendservice.service;
 
-import jakarta.transaction.Transactional;
+
 import novi.backend.opdracht.backendservice.model.User;
 import novi.backend.opdracht.backendservice.repository.UserRepository;
+import novi.backend.opdracht.backendservice.exception.*;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import jakarta.transaction.Transactional;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import novi.backend.opdracht.backendservice.exception.*;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,5 +39,4 @@ public class CustomUserDetailsService implements UserDetailsService {
                 authorities
         );
     }
-
 }

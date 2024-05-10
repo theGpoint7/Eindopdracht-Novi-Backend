@@ -2,19 +2,24 @@ package novi.backend.opdracht.backendservice.service;
 
 import novi.backend.opdracht.backendservice.dto.input.UpdateUserRequest;
 import novi.backend.opdracht.backendservice.dto.input.UserRequest;
+import novi.backend.opdracht.backendservice.dto.output.FilteredUserResponse;
 import novi.backend.opdracht.backendservice.dto.output.UserResponse;
 import novi.backend.opdracht.backendservice.exception.*;
 import novi.backend.opdracht.backendservice.model.Authority;
 import novi.backend.opdracht.backendservice.model.Role;
 import novi.backend.opdracht.backendservice.model.User;
 import novi.backend.opdracht.backendservice.repository.UserRepository;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -39,15 +44,20 @@ public class UserService {
     }
 
     public List<UserResponse> getUsers() {
-        List<UserResponse> collection = new ArrayList<>();
-        List<User> list = userRepository.findAll();
-        for (User user : list) {
-            collection.add(fromUser(user));
-        }
-        return collection;
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::fromUser)
+                .collect(Collectors.toList());
     }
 
-    public UserResponse getUser(String username) {
+    public List<FilteredUserResponse> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::mapToFullUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    public UserResponse getUserResponse(String username) {
         Optional<User> user = userRepository.findById(username);
         if (user.isPresent()) {
             return fromUser(user.get());
@@ -56,42 +66,106 @@ public class UserService {
         }
     }
 
+    public FilteredUserResponse getFilteredUserResponse(String username) {
+        Optional<User> user = userRepository.findById(username);
+        if (user.isPresent()) {
+            return mapToFilteredUserResponse(user.get());
+        } else {
+            throw new UsernameNotFoundException(username);
+        }
+    }
+
+    private FilteredUserResponse mapToFilteredUserResponse(User user) {
+        var response = new FilteredUserResponse();
+        response.setUsername(user.getUsername());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+        return response;
+    }
+
+
     public boolean userExists(String username) {
         return userRepository.existsById(username);
     }
 
+    public ResponseEntity<?> getUser(String username) {
+        String currentUser = getCurrentUser();
+        if (currentUser.equals(username)) {
+            var fullUserResponse = getUser(username);
+            return ResponseEntity.ok().body(fullUserResponse);
+        } else {
+            List<FilteredUserResponse> allUsers = getAllUsers();
+            Optional<FilteredUserResponse> user = allUsers.stream()
+                    .filter(u -> u.getUsername().equals(username))
+                    .findFirst();
+            if (user.isPresent()) {
+                return ResponseEntity.ok().body(user.get());
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        }
+    }
+
+
     public String createUser(UserRequest userRequest) {
-        String username = userRequest.getUsername();
-        if (userExists(username)) {
-            throw new UsernameExistsException(username);
+        if (userExists(userRequest.getUsername())) {
+            throw new UsernameExistsException("Username already exists: " + userRequest.getUsername());
         }
         String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
         userRequest.setPassword(encodedPassword);
-        User newUser = userRepository.save(toUser(userRequest));
-        addAuthority(newUser.getUsername(), Role.ROLE_USER);
+        userRequest.setUserCreatedOn(LocalDate.now());
+        User newUser = toUser(userRequest);
+        newUser.setEnabledAccount(true);
+        newUser = userRepository.save(newUser);
+        addAuthority(newUser.getUsername(), Role.ROLE_CUSTOMER);
+
         return newUser.getUsername();
     }
 
     public void deleteUserAccount(String username, String confirmUsername, String confirmPassword) {
         String currentUser = getCurrentUser();
         if (!currentUser.equals(username)) {
-            throw new UnauthorizedException("You are not authorized to delete another user's account");
+            throw new AuthorizationServiceException("You are not authorized to delete another user's account");
         }
         if (!username.equals(confirmUsername)) {
-            throw new UnauthorizedException("Confirmation username does not match the user being deleted");
+            throw new AuthorizationServiceException("Confirmation username does not match the user being deleted");
         }
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
         if (!passwordEncoder.matches(confirmPassword, user.getPassword())) {
-            throw new UnauthorizedException("Incorrect confirmation password");
+            throw new AuthorizationServiceException("Incorrect confirmation password");
         }
         userRepository.deleteById(username);
     }
 
-    public void updateUserInformation(String username, UpdateUserRequest updateUserRequest) {
+    public void disableUserAccount(String username, String confirmUsername, String confirmPassword) {
         String currentUser = getCurrentUser();
         if (!currentUser.equals(username)) {
-            throw new UnauthorizedException("You are not authorized to update another user's information");
+            throw new AuthorizationServiceException("You are not authorized to disable another user's account");
+        }
+        if (!username.equals(confirmUsername)) {
+            throw new AuthorizationServiceException("Confirmation username does not match the user being disabled");
+        }
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        if (!passwordEncoder.matches(confirmPassword, user.getPassword())) {
+            throw new AuthorizationServiceException("Incorrect confirmation password");
+        }
+        user.setEnabledAccount(false);
+        removeRoles(user);
+        userRepository.save(user);
+    }
+
+
+    private void removeRoles(User user) {
+        removeAuthority(user.getUsername(), Role.ROLE_CUSTOMER);
+        removeAuthority(user.getUsername(), Role.ROLE_DESIGNER);
+    }
+
+    public UserResponse updateUserInformation(String username, UpdateUserRequest updateUserRequest) {
+        String currentUser = getCurrentUser();
+        if (!currentUser.equals(username)) {
+            throw new AuthorizationServiceException("You are not authorized to update another user's information");
         }
         if (!userExists(username)) {
             throw new UsernameNotFoundException(username);
@@ -117,30 +191,32 @@ public class UserService {
         if (updateUserRequest.getPhoneNo() != null) {
             user.setPhoneNo(updateUserRequest.getPhoneNo());
         }
-        userRepository.save(user);
+        User updatedUser = userRepository.save(user);
+        return fromUser(updatedUser);
     }
 
-    public void updateUserPassword(String username, String currentPassword, String newPassword) {
+    public UserResponse updateUserPassword(String username, String currentPassword, String newPassword) {
         String currentUser = getCurrentUser();
         if (!currentUser.equals(username)) {
-            throw new UnauthorizedException("You are not authorized to update another user's password");
+            throw new AuthorizationServiceException("You are not authorized to update another user's password");
         }
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new UnauthorizedException("Incorrect current password");
+            throw new AuthorizationServiceException("Incorrect current password");
         }
         String encodedNewPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedNewPassword);
-        userRepository.save(user);
+        User updatedUser = userRepository.save(user);
+        return fromUser(updatedUser);
     }
+
 
     public Set<Role> getAuthorities(String username) {
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
         return user.getAuthorities().stream().map(Authority::getAuthority).collect(Collectors.toSet());
     }
-
 
     public void addAuthority(String username, Role role) {
         if (!userRepository.existsById(username)) {
@@ -156,21 +232,22 @@ public class UserService {
         }
     }
 
-
     public void removeAuthority(String username, Role role) {
         User user = userRepository.findById(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
         Optional<Authority> authorityToRemove = user.getAuthorities()
                 .stream()
-                .filter(a -> a.getAuthority() == role) // Filter based on role enum
+                .filter(a -> a.getAuthority() == role)
                 .findAny();
         authorityToRemove.ifPresent(user::removeAuthority);
         userRepository.save(user);
     }
 
+
+
     private UserResponse fromUser(User user) {
         var response = new UserResponse();
-        response.setUsername(user.getUsername());
+        response.setUserName(user.getUsername());
         response.setEmail(user.getEmail());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
@@ -181,6 +258,14 @@ public class UserService {
         response.setAuthorities(user.getAuthorities().stream()
                 .map(Authority::getAuthority)
                 .collect(Collectors.toSet()));
+        return response;
+    }
+
+    private FilteredUserResponse mapToFullUserResponse(User user) {
+        var response = new FilteredUserResponse();
+        response.setUsername(user.getUsername());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
         return response;
     }
 

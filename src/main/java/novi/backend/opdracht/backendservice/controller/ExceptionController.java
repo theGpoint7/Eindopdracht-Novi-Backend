@@ -19,16 +19,6 @@ public class ExceptionController {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = UsernameNotFoundException.class)
-    public ResponseEntity<String> handleUsernameNotFoundException(UsernameNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(value = ResourceNotFoundException.class)
-    public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
     @ExceptionHandler(value = ProductNameTooLongException.class)
     public ResponseEntity<String> handleProductNameTooLongException(ProductNameTooLongException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
@@ -37,6 +27,11 @@ public class ExceptionController {
     @ExceptionHandler(value = AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(value = ResourceNotFoundException.class)
+    public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(value = UsernameExistsException.class)
@@ -52,16 +47,6 @@ public class ExceptionController {
     @ExceptionHandler(value = InsufficientStockException.class)
     public ResponseEntity<String> handleInsufficientStockException(InsufficientStockException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(value = InvalidProductException.class)
-    public ResponseEntity<String> handleInvalidProductException(InvalidProductException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(value = MethodNotAllowedException.class)
-    public ResponseEntity<String> handleMethodNotAllowedException(MethodNotAllowedException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(value = OrderCreationException.class)

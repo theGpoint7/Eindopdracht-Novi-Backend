@@ -7,31 +7,22 @@ import java.util.Set;
 
 public class UserResponse {
 
-    private String username;
-    private Boolean enabled;
+    private String userName;
     private String email;
     private String firstName;
     private String lastName;
     private LocalDate dateOfBirth;
     private String address;
     private String phoneNo;
-    private LocalDate userCreatedOn; // User creation date
+    private LocalDate userCreatedOn;
     private Set<Role> authorities;
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public Boolean getEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getEmail() {
