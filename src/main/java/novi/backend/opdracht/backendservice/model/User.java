@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
-import jakarta.persistence.Id;
 import jakarta.persistence.*;
+import novi.backend.opdracht.backendservice.dto.input.UpdateUserRequest;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -15,7 +15,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 100)
     private String password;
 
     @Column
@@ -140,12 +140,12 @@ public class User {
         this.phoneNo = phoneNo;
     }
 
-    public void setEnabledAccount(boolean enabledAccount) {
-        this.enabledAccount = enabledAccount;
-    }
-
     public boolean isEnabledAccount() {
         return enabledAccount;
+    }
+
+    public void setEnabledAccount(boolean enabledAccount) {
+        this.enabledAccount = enabledAccount;
     }
 
     public LocalDate getUserCreatedOn() {
@@ -181,25 +181,19 @@ public class User {
     }
 
     public void addFeedback(Feedback feedback) {
-        feedbacks.add(feedback);
-        feedback.setUser(this);
+        this.feedbacks.add(feedback);
     }
 
     public void removeFeedback(Feedback feedback) {
-        feedbacks.remove(feedback);
-        feedback.setUser(null);
-    }
-
-    public void setFeedbacks(Set<Feedback> feedbacks) {
-        this.feedbacks = feedbacks;
+        this.feedbacks.remove(feedback);
     }
 
     public Set<DesignerRequest> getDesignerRequests() {
         return designerRequests;
     }
 
-    public void setDesignerRequests(Set<DesignerRequest> designerRequests) {
-        this.designerRequests = designerRequests;
+    public void addDesignerRequest(DesignerRequest designerRequest) {
+        this.designerRequests.add(designerRequest);
     }
 
     public void removeDesignerRequest(DesignerRequest designerRequest) {
@@ -212,5 +206,38 @@ public class User {
 
     public void setDesigner(Designer designer) {
         this.designer = designer;
+    }
+
+    public void enableAccount() {
+        this.enabledAccount = true;
+    }
+
+    public void disableAccount() {
+        this.enabledAccount = false;
+    }
+
+    public void updateInformation(UpdateUserRequest updateUserRequest) {
+        if (updateUserRequest.getEmail() != null) {
+            this.email = updateUserRequest.getEmail();
+        }
+        if (updateUserRequest.getFirstName() != null) {
+            this.firstName = updateUserRequest.getFirstName();
+        }
+        if (updateUserRequest.getLastName() != null) {
+            this.lastName = updateUserRequest.getLastName();
+        }
+        if (updateUserRequest.getDateOfBirth() != null) {
+            this.dateOfBirth = updateUserRequest.getDateOfBirth();
+        }
+        if (updateUserRequest.getAddress() != null) {
+            this.address = updateUserRequest.getAddress();
+        }
+        if (updateUserRequest.getPhoneNo() != null) {
+            this.phoneNo = updateUserRequest.getPhoneNo();
+        }
+    }
+
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
     }
 }

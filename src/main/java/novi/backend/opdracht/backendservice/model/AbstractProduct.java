@@ -1,13 +1,14 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
 
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AbstractProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "productId")
     private Long productId;
 
     @Column(nullable = false, unique = true)
@@ -117,5 +118,15 @@ public abstract class AbstractProduct {
 
     public void setPromotion(Promotion promotion) {
         this.promotion = promotion;
+    }
+
+    public void updateCommonFields(ProductInputDTO productInputDTO) {
+        this.productName = productInputDTO.getProductName();
+        this.productType = productInputDTO.getProductType();
+        this.price = productInputDTO.getPrice();
+        this.inventoryCount = productInputDTO.getInventoryCount();
+        this.imageUrl = productInputDTO.getImageUrl();
+        this.productDescription = productInputDTO.getProductDescription();
+        this.material = productInputDTO.getMaterial();
     }
 }

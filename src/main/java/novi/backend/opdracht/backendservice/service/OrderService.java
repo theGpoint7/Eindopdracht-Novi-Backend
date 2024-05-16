@@ -3,9 +3,7 @@ package novi.backend.opdracht.backendservice.service;
 import novi.backend.opdracht.backendservice.dto.input.CartItemInputDTO;
 import novi.backend.opdracht.backendservice.dto.input.OrderRequestDTO;
 import novi.backend.opdracht.backendservice.dto.output.OrderOutputDTO;
-
 import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDTO;
-import novi.backend.opdracht.backendservice.exception.AuthenticationException;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.model.*;
@@ -14,13 +12,11 @@ import novi.backend.opdracht.backendservice.repository.ProductRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AuthorizationServiceException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,38 +25,35 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartService cartService;
     private final ProductRepository productRepository;
+    private final AuthenticationService authenticationService;
 
-    public OrderService(OrderRepository orderRepository, CartService cartService, ProductRepository productRepository) {
+    public OrderService(OrderRepository orderRepository, CartService cartService, ProductRepository productRepository, AuthenticationService authenticationService) {
         this.orderRepository = orderRepository;
         this.cartService = cartService;
         this.productRepository = productRepository;
+        this.authenticationService = authenticationService;
     }
 
-    public ResponseEntity<String> placeOrder(OrderRequestDTO orderRequest) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Cart cart = cartService.getUserCart(username);
+    public void placeOrder(OrderRequestDTO orderRequest) {
+        User user = authenticationService.getCurrentUser();
+        Cart cart = cartService.getUserCart();
         if (cart.getItems().isEmpty()) {
-            return ResponseEntity.badRequest().body("Kan geen bestelling plaatsen met een lege winkelwagen");
+            throw new BadRequestException("Kan geen bestelling plaatsen met een lege winkelwagen");
         }
 
         List<CartItemInputDTO> cartItems;
         if (orderRequest.getCartItems() == null) {
             cartItems = cart.getItems().stream()
-                    .map(cartItem -> {
-                        CartItemInputDTO inputDTO = new CartItemInputDTO();
-                        inputDTO.setProductId(cartItem.getProduct().getProductId());
-                        inputDTO.setQuantity(cartItem.getQuantity());
-                        return inputDTO;
-                    })
+                    .map(cartItem -> new CartItemInputDTO(cartItem.getProduct().getProductId(), cartItem.getQuantity()))
                     .collect(Collectors.toList());
         } else {
             cartItems = orderRequest.getCartItems();
         }
 
         Order order = new Order();
-        order.setUser(cart.getUser());
+        order.setUser(user);
         order.setOrderDateTime(LocalDateTime.now());
-        order.setShippingAddress(cart.getUser().getAddress());
+        order.setShippingAddress(user.getAddress());
         order.setOrderStatus(OrderStatus.PENDING);
         order.setPaymentStatus(PaymentStatus.PENDING);
 
@@ -71,7 +64,7 @@ public class OrderService {
             AbstractProduct product = getProductById(cartItem.getProductId());
             if (product != null) {
                 if (product.getInventoryCount() < cartItem.getQuantity()) {
-                    return ResponseEntity.badRequest().body("Onvoldoende voorraad voor product: " + product.getProductName());
+                    throw new BadRequestException("Onvoldoende voorraad voor product: " + product.getProductName());
                 }
                 product.setInventoryCount(product.getInventoryCount() - cartItem.getQuantity());
                 productRepository.save(product);
@@ -83,18 +76,17 @@ public class OrderService {
                 Long designerId = product.getDesigner().getDesignerId();
 
                 OrderLine orderLine = new OrderLine(order, product, cartItem.getQuantity(), productPrice, discountAmount);
-                orderLines.add(orderLine);
+                order.addOrderLine(orderLine);
 
                 if (commonDesignerId == null) {
                     commonDesignerId = designerId;
                 } else {
                     if (!designerId.equals(commonDesignerId)) {
-                        return ResponseEntity.badRequest().body("Alle producten in de bestelling moeten van dezelfde ontwerper zijn");
+                        throw new BadRequestException("Alle producten in de bestelling moeten van dezelfde ontwerper zijn");
                     }
                 }
             }
         }
-        order.setOrderLines(orderLines);
         order.setAmount(totalPrice);
         order.setDesignerId(commonDesignerId);
 
@@ -102,8 +94,6 @@ public class OrderService {
 
         cart.getItems().clear();
         cartService.saveCart(cart);
-
-        return ResponseEntity.ok("Bestelling succesvol geplaatst");
     }
 
     private double calculateDiscountAmount(AbstractProduct product, int quantity) {
@@ -121,86 +111,42 @@ public class OrderService {
     }
 
     public OrderOutputDTO getOrderDetails(Long orderId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = authenticationService.getCurrentUser();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bestelling niet gevonden"));
 
-        Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        if (optionalOrder.isEmpty()) {
-            throw new BadRequestException("Bestelling niet gevonden");
-        }
-        Order order = optionalOrder.get();
-
-        if (!order.getUser().getUsername().equals(username)) {
+        if (!order.isOwnedBy(user.getUsername())) {
             throw new AuthorizationServiceException("Je bent niet gemachtigd om deze bestelling te bekijken");
         }
 
-        OrderOutputDTO orderOutputDTO = new OrderOutputDTO();
-        orderOutputDTO.setOrderId(order.getOrderId());
-        orderOutputDTO.setUsername(order.getUser().getUsername());
-        orderOutputDTO.setAmount(order.getAmount());
-        orderOutputDTO.setOrderDateTime(order.getOrderDateTime());
-        orderOutputDTO.setShippingAddress(order.getShippingAddress());
-        orderOutputDTO.setOrderStatus(order.getOrderStatus());
-        orderOutputDTO.setPaymentStatus(order.getPaymentStatus() != null ? order.getPaymentStatus().name() : null);
-
-        AbstractPaymentMethod paymentMethod = order.getPaymentMethod();
-        if (paymentMethod != null) {
-            orderOutputDTO.setPaymentMethodType(paymentMethod.getPaymentMethodType());
-        }
-
-        return orderOutputDTO;
+        return toOrderOutputDTO(order);
     }
 
     public List<OrderOutputDTO> getUserOrders() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<Order> userOrders = orderRepository.findByUserUsername(username);
+        User user = authenticationService.getCurrentUser();
+        List<Order> userOrders = orderRepository.findByUserUsername(user.getUsername());
 
         return userOrders.stream()
-                .map(order -> {
-                    OrderOutputDTO orderOutputDTO = new OrderOutputDTO();
-                    orderOutputDTO.setOrderId(order.getOrderId());
-                    orderOutputDTO.setUsername(order.getUser().getUsername());
-                    orderOutputDTO.setAmount(order.getAmount());
-                    orderOutputDTO.setOrderDateTime(order.getOrderDateTime());
-                    orderOutputDTO.setShippingAddress(order.getShippingAddress());
-                    orderOutputDTO.setOrderStatus(order.getOrderStatus());
-                    orderOutputDTO.setPaymentStatus(order.getPaymentStatus() != null ? order.getPaymentStatus().name() : null);
-
-                    AbstractPaymentMethod paymentMethod = order.getPaymentMethod();
-                    if (paymentMethod != null) {
-                        orderOutputDTO.setPaymentMethodType(paymentMethod.getPaymentMethodType());
-                    }
-
-                    return orderOutputDTO;
-                })
+                .map(this::toOrderOutputDTO)
                 .collect(Collectors.toList());
     }
 
-
     public void cancelOrder(Long orderId) {
-        Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        if (optionalOrder.isEmpty()) {
-            throw new BadRequestException("Bestelling niet gevonden");
-        }
-        Order order = optionalOrder.get();
+        User user = authenticationService.getCurrentUser();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BadRequestException("Bestelling niet gevonden"));
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        if (!order.getUser().getUsername().equals(username)) {
+        if (!order.isOwnedBy(user.getUsername())) {
             throw new AuthorizationServiceException("Je bent niet gemachtigd om deze bestelling te annuleren");
         }
-        if (order.getOrderStatus() != OrderStatus.SHIPPED) {
-            throw new BadRequestException("Bestelling is al verzonden en kan niet worden geannuleerd");
-        }
-        if (order.getOrderStatus() != OrderStatus.CONFIRMED) {
-            throw new BadRequestException("Bestelling is al voltooid en kan niet worden geannuleerd");
-        }
 
-        order.setOrderStatus(OrderStatus.CANCELED);
+        order.updateOrderStatus(OrderStatus.CANCELED);
         orderRepository.save(order);
     }
 
     public ResponseEntity<String> confirmShipment(Long orderId) {
         try {
+            User user = authenticationService.getCurrentUser();
             Order order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new ResourceNotFoundException("Bestelling niet gevonden"));
 
@@ -212,9 +158,9 @@ public class OrderService {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Betaling is niet bevestigd");
             }
 
-            String designerUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+            String designerUsername = user.getUsername();
 
-            if (!orderContainsProductsByDesigner(order, designerUsername)) {
+            if (!order.containsProductsByDesigner(designerUsername)) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("De bestelling bevat geen producten van de ontwerper die de verzending bevestigt");
             }
 
@@ -235,17 +181,6 @@ public class OrderService {
         }
     }
 
-    private boolean orderContainsProductsByDesigner(Order order, String designerUsername) {
-        Set<OrderLine> orderLines = order.getOrderLines();
-        for (OrderLine orderLine : orderLines) {
-            AbstractProduct product = orderLine.getProduct();
-            if (!product.getDesigner().getUser().getUsername().equals(designerUsername)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public Receipt getReceipt(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Bestelling niet gevonden"));
@@ -253,19 +188,40 @@ public class OrderService {
     }
 
     public ReceiptOutputDTO getReceiptForOrder(Long orderId) {
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        User user = authenticationService.getCurrentUser();
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        if (!order.getUser().getUsername().equals(currentUsername)) {
-            throw new AuthorizationServiceException("You are not authorized to view this receipt");
+                .orElseThrow(() -> new ResourceNotFoundException("Bestelling niet gevonden"));
+        if (!order.isOwnedBy(user.getUsername())) {
+            throw new AuthorizationServiceException("Je bent niet gemachtigd om deze bon te bekijken");
         }
 
         Receipt receipt = order.getReceipt();
         if (receipt == null) {
-            throw new ResourceNotFoundException("Receipt not found for order with ID: " + orderId);
+            throw new ResourceNotFoundException("Bon niet gevonden voor bestelling met ID: " + orderId);
         }
 
+        return toReceiptOutputDTO(receipt);
+    }
+
+    private OrderOutputDTO toOrderOutputDTO(Order order) {
+        OrderOutputDTO orderOutputDTO = new OrderOutputDTO();
+        orderOutputDTO.setOrderId(order.getOrderId());
+        orderOutputDTO.setUsername(order.getUser().getUsername());
+        orderOutputDTO.setAmount(order.getAmount());
+        orderOutputDTO.setOrderDateTime(order.getOrderDateTime());
+        orderOutputDTO.setShippingAddress(order.getShippingAddress());
+        orderOutputDTO.setOrderStatus(order.getOrderStatus());
+        orderOutputDTO.setPaymentStatus(order.getPaymentStatus() != null ? order.getPaymentStatus().name() : null);
+
+        AbstractPaymentMethod paymentMethod = order.getPaymentMethod();
+        if (paymentMethod != null) {
+            orderOutputDTO.setPaymentMethodType(paymentMethod.getPaymentMethodType());
+        }
+
+        return orderOutputDTO;
+    }
+
+    private ReceiptOutputDTO toReceiptOutputDTO(Receipt receipt) {
         ReceiptOutputDTO outputDTO = new ReceiptOutputDTO();
         outputDTO.setReceiptId(receipt.getReceiptId());
         outputDTO.setDateIssued(receipt.getDateIssued());
@@ -275,25 +231,17 @@ public class OrderService {
         return outputDTO;
     }
 
-
-
     private Receipt generateReceipt(Order order) {
         Receipt receipt = new Receipt();
         receipt.setDateIssued(LocalDateTime.now());
 
-        double totalAmount = calculateTotalAmount(order);
+        double totalAmount = order.calculateTotalAmount();
         receipt.setTotalAmount(totalAmount);
 
         double shippingCost = 0.0;
         receipt.setShippingCost(shippingCost);
 
         return receipt;
-    }
-
-    private double calculateTotalAmount(Order order) {
-        return order.getOrderLines().stream()
-                .mapToDouble(orderLine -> orderLine.getQuantity() * orderLine.getPrice())
-                .sum();
     }
 
     public double getTotalSalesByDesignerId(Long designerId) {

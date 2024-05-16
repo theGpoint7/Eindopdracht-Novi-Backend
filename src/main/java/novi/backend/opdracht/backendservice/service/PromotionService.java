@@ -9,9 +9,7 @@ import novi.backend.opdracht.backendservice.model.User;
 import novi.backend.opdracht.backendservice.repository.DesignerRepository;
 import novi.backend.opdracht.backendservice.repository.ProductRepository;
 import novi.backend.opdracht.backendservice.repository.PromotionRepository;
-import novi.backend.opdracht.backendservice.repository.UserRepository;
 import org.springframework.security.access.AuthorizationServiceException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -23,19 +21,19 @@ public class PromotionService {
 
     private final DesignerRepository designerRepository;
     private final PromotionRepository promotionRepository;
-    private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final AuthenticationService authenticationService;
 
-    public PromotionService(DesignerRepository designerRepository, PromotionRepository promotionRepository, UserRepository userRepository, ProductRepository productRepository) {
+    public PromotionService(DesignerRepository designerRepository, PromotionRepository promotionRepository, ProductRepository productRepository, AuthenticationService authenticationService) {
         this.designerRepository = designerRepository;
         this.promotionRepository = promotionRepository;
-        this.userRepository = userRepository;
         this.productRepository = productRepository;
+        this.authenticationService = authenticationService;
     }
 
     public List<PromotionResponseDto> getDesignerPromotions(Long designerId) {
-        String username = getUsernameFromJwt();
-        Long jwtDesignerId = getDesignerIdFromJwt(username);
+        User currentUser = authenticationService.getCurrentUser();
+        Long jwtDesignerId = getDesignerIdFromUser(currentUser);
         if (!jwtDesignerId.equals(designerId)) {
             throw new AuthorizationServiceException("User is not authorized for this action");
         }
@@ -46,22 +44,17 @@ public class PromotionService {
                 .collect(Collectors.toList());
     }
 
-
-    private String getUsernameFromJwt() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getName();
+    private Long getDesignerIdFromUser(User user) {
+        if (user.getDesigner() != null) {
+            return user.getDesigner().getDesignerId();
+        } else {
+            throw new UsernameNotFoundException("User not found or not associated with a designer");
+        }
     }
-
-    private Long getDesignerIdFromJwt(String username) {
-        return userRepository.findByUsername(username)
-                .map(user -> user.getDesigner().getDesignerId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found or not associated with a designer"));
-    }
-
 
     public void createPromotion(Long designerId, PromotionInputDto promotionInputDto) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!isUserAuthorizedForDesigner(username, designerId)) {
+        User currentUser = authenticationService.getCurrentUser();
+        if (!isUserAuthorizedForDesigner(currentUser, designerId)) {
             throw new AuthorizationServiceException("User is not authorized for this action");
         }
 
@@ -83,7 +76,7 @@ public class PromotionService {
     }
 
     public void applyPromotionToProduct(Long productId, Long designerId, Long promotionId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = authenticationService.getCurrentUser();
         Promotion promotion = promotionRepository.findById(promotionId)
                 .orElseThrow(() -> new IllegalArgumentException("Promotion not found"));
         Designer designer = promotion.getDesigner();
@@ -91,7 +84,7 @@ public class PromotionService {
         if (designer == null) {
             throw new IllegalArgumentException("Designer not found for promotion");
         }
-        if (!isUserAuthorizedForDesigner(username, designerId)) {
+        if (!isUserAuthorizedForDesigner(currentUser, designerId)) {
             throw new AuthorizationServiceException("User is not authorized for this action");
         }
         if (!designer.getDesignerId().equals(designerId)) {
@@ -109,17 +102,13 @@ public class PromotionService {
         productRepository.save(product);
     }
 
-
     private boolean isProductOwnedByDesigner(Long productId, Designer designer) {
         AbstractProduct product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         return product.getDesigner().equals(designer);
     }
 
-
-    private boolean isUserAuthorizedForDesigner(String username, Long designerId) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    private boolean isUserAuthorizedForDesigner(User user, Long designerId) {
         return user.getDesigner() != null && user.getDesigner().getDesignerId().equals(designerId);
     }
 

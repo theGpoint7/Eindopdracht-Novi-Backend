@@ -5,14 +5,13 @@ import novi.backend.opdracht.backendservice.dto.input.DesignerInfoInputDto;
 import novi.backend.opdracht.backendservice.dto.input.DesignerRequestDto;
 import novi.backend.opdracht.backendservice.dto.output.DesignerRequestResponseDto;
 import novi.backend.opdracht.backendservice.service.DesignerRequestService;
-
+import novi.backend.opdracht.backendservice.service.ValidationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.validation.FieldError;
 
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -24,22 +23,18 @@ import java.util.List;
 public class DesignerRequestController {
 
     private final DesignerRequestService designerService;
+    private final ValidationService validationService;
 
-    public DesignerRequestController(DesignerRequestService designerService) {
+    public DesignerRequestController(DesignerRequestService designerService, ValidationService validationService) {
         this.designerService = designerService;
+        this.validationService = validationService;
     }
 
-
     @PostMapping(value = "/request")
-    public ResponseEntity<Object> indienenDesignerVerzoek(@Valid @RequestBody DesignerRequestDto designerRequestDTO, BindingResult result) {
+    public ResponseEntity<Object> submitDesignerRequest(@Valid @RequestBody DesignerRequestDto designerRequestDTO, BindingResult result) {
         if (result.hasErrors()) {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (FieldError fieldError : result.getFieldErrors()) {
-                stringBuilder.append(fieldError.getField()).append(": ");
-                stringBuilder.append(fieldError.getDefaultMessage());
-                stringBuilder.append("\n");
-            }
-            return ResponseEntity.badRequest().body(stringBuilder.toString());
+            String errorMessage = validationService.formatFieldErrors(result);
+            return ResponseEntity.badRequest().body(errorMessage);
         }
         Long requestId = designerService.submitDesignerRequest(designerRequestDTO);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{requestId}")
@@ -48,7 +43,7 @@ public class DesignerRequestController {
     }
 
     @GetMapping("/request/{username}")
-    public ResponseEntity<List<DesignerRequestResponseDto>> haalDesignerVerzoekenOpPerGebruikersnaam(@PathVariable String username) {
+    public ResponseEntity<List<DesignerRequestResponseDto>> getDesignerRequestsByUsername(@PathVariable String username) {
         List<DesignerRequestResponseDto> responses = designerService.getDesignerRequestsByUsername(username);
         if (responses.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -57,28 +52,29 @@ public class DesignerRequestController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> bijwerkenDesignerInformatie(@RequestBody @Valid DesignerInfoInputDto designerInfo, BindingResult result) {
+    public ResponseEntity<?> updateDesignerInfo(@RequestBody @Valid DesignerInfoInputDto designerInfo, BindingResult result) {
         if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body("Validatiefouten zijn opgetreden.");
+            String errorMessage = validationService.formatFieldErrors(result);
+            return ResponseEntity.badRequest().body(errorMessage);
         }
         try {
             UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             String username = userDetails.getUsername();
             designerService.updateDesignerInfo(username, designerInfo);
-            return ResponseEntity.ok("Designerinformatie succesvol bijgewerkt");
+            return ResponseEntity.ok("Designerinformatie succesvol bijgewerkt.");
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body("Kon designerinformatie niet bijwerken: " + ex.getMessage());
         }
     }
 
     @GetMapping(value = "/requests/all")
-    public ResponseEntity<List<DesignerRequestResponseDto>> haalAlleDesignerVerzoekenOp() {
+    public ResponseEntity<List<DesignerRequestResponseDto>> getAllDesignerRequests() {
         List<DesignerRequestResponseDto> responses = designerService.getAllDesignerRequests();
         return ResponseEntity.ok(responses);
     }
 
     @PostMapping("/requests/{requestId}/approve")
-    public ResponseEntity<?> keurDesignerVerzoekGoed(
+    public ResponseEntity<?> approveDesignerRequest(
             @PathVariable Long requestId,
             @RequestBody DesignerApprovalDto approvalDto) {
 

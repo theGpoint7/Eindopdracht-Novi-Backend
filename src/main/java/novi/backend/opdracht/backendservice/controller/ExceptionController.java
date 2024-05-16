@@ -1,56 +1,72 @@
 package novi.backend.opdracht.backendservice.controller;
 
+import novi.backend.opdracht.backendservice.exception.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import novi.backend.opdracht.backendservice.exception.*;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
 public class ExceptionController {
 
-    @ExceptionHandler(value = RecordNotFoundException.class)
-    public ResponseEntity<Object> handleRecordNotFoundException(RecordNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
+    private static final Logger logger = LoggerFactory.getLogger(ExceptionController.class);
 
     @ExceptionHandler(value = BadRequestException.class)
-    public ResponseEntity<String> handleBadRequestException(BadRequestException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex) {
+        logger.error("BadRequestException: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage(), "Bad request"), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = ProductNameTooLongException.class)
-    public ResponseEntity<String> handleProductNameTooLongException(ProductNameTooLongException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleProductNameTooLongException(ProductNameTooLongException ex) {
+        logger.error("ProductNameTooLongException: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage(), "Product name too long"), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = AccessDeniedException.class)
-    public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+        logger.error("AccessDeniedException: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage(), "Access denied"), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(value = ResourceNotFoundException.class)
-    public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        logger.error("ResourceNotFoundException: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage(), "Resource not found"), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(value = UsernameExistsException.class)
-    public ResponseEntity<String> handleUsernameExistsException(UsernameExistsException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleUsernameExistsException(UsernameExistsException ex) {
+        logger.error("UsernameExistsException: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage(), "Username already exists"), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = AuthenticationException.class)
-    public ResponseEntity<String> handleAuthenticationException(AuthenticationException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
+        logger.error("AuthenticationException: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage(), "Authentication failed"), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(value = InsufficientStockException.class)
-    public ResponseEntity<String> handleInsufficientStockException(InsufficientStockException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        logger.error("Validation exception: {}", ex.getMessage());
+        Map<String, String> errors = new HashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            errors.put(error.getField(), error.getDefaultMessage());
+        }
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = OrderCreationException.class)
-    public ResponseEntity<String> handleOrderCreationException(OrderCreationException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
+        logger.error("General exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage(), "Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

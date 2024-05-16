@@ -3,12 +3,11 @@ package novi.backend.opdracht.backendservice.controller;
 import novi.backend.opdracht.backendservice.dto.input.FeedbackInputDTO;
 import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDTO;
 import novi.backend.opdracht.backendservice.service.FeedbackService;
-
+import novi.backend.opdracht.backendservice.service.ValidationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import jakarta.validation.Valid;
 import java.net.URI;
 
@@ -18,15 +17,18 @@ import java.net.URI;
 public class FeedbackController {
 
     private final FeedbackService feedbackService;
+    private final ValidationService validationService;
 
-    public FeedbackController(FeedbackService feedbackService) {
+    public FeedbackController(FeedbackService feedbackService, ValidationService validationService) {
         this.feedbackService = feedbackService;
+        this.validationService = validationService;
     }
 
     @PostMapping
     public ResponseEntity<?> postFeedback(@Valid @RequestBody FeedbackInputDTO feedbackInputDTO, BindingResult result) {
         if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body("Validatiefouten zijn opgetreden.");
+            String errorMessage = validationService.formatFieldErrors(result);
+            return ResponseEntity.badRequest().body(errorMessage);
         }
 
         FeedbackOutputDTO createdFeedback = feedbackService.postFeedback(feedbackInputDTO);

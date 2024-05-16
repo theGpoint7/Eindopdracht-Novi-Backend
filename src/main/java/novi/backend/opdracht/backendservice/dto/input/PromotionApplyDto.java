@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 public class PromotionApplyDto {
 
-    @NotBlank(message = "Promotion name cannot be empty.")
+    @NotBlank(message = "Promotienaam mag niet leeg zijn!")
     private String promotionName;
 
     private LocalDateTime promotionStartDateTime;

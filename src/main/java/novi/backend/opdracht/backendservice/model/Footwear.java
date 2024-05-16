@@ -1,6 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
 
 @Entity
 public class Footwear extends AbstractProduct {
@@ -9,11 +10,7 @@ public class Footwear extends AbstractProduct {
     private String gender;
 
     public Footwear() {
-    }
-
-    public Footwear(String productName, String productType, double price, int inventoryCount, String imageUrl, String productDescription, String material, Integer footwearSize, String gender) {
-        this.footwearSize = footwearSize;
-        this.gender = gender;
+        super();
     }
 
     public Integer getFootwearSize() {
@@ -30,5 +27,10 @@ public class Footwear extends AbstractProduct {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public void updateSpecificFields(ProductInputDTO productInputDTO) {
+        this.footwearSize = productInputDTO.getFootwearSize();
+        this.gender = productInputDTO.getGender();
     }
 }

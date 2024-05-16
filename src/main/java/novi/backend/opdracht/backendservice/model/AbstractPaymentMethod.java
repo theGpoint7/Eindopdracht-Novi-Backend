@@ -1,9 +1,13 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
+import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDTO;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "payment_method_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class AbstractPaymentMethod {
 
     @Id
@@ -15,9 +19,6 @@ public abstract class AbstractPaymentMethod {
     private Order order;
 
     @Column(nullable = false)
-    private String paymentMethodType;
-
-    @Column(nullable = false)
     private LocalDateTime paymentCreationDateTime;
 
     @Column
@@ -26,17 +27,7 @@ public abstract class AbstractPaymentMethod {
     @Column
     private LocalDateTime paymentCompletionDateTime;
 
-    public AbstractPaymentMethod() {
-    }
-
-    public AbstractPaymentMethod(String paymentMethodType, LocalDateTime paymentCreationDateTime,
-                                 LocalDateTime paymentMethodExpirationDateTime,
-                                 LocalDateTime paymentCompletionDateTime) {
-        this.paymentMethodType = paymentMethodType;
-        this.paymentCreationDateTime = paymentCreationDateTime;
-        this.paymentMethodExpirationDateTime = paymentMethodExpirationDateTime;
-        this.paymentCompletionDateTime = paymentCompletionDateTime;
-    }
+    // Getters and Setters
 
     public Long getPaymentMethodId() {
         return paymentMethodId;
@@ -52,14 +43,6 @@ public abstract class AbstractPaymentMethod {
 
     public void setOrder(Order order) {
         this.order = order;
-    }
-
-    public String getPaymentMethodType() {
-        return paymentMethodType;
-    }
-
-    public void setPaymentMethodType(String paymentMethodType) {
-        this.paymentMethodType = paymentMethodType;
     }
 
     public LocalDateTime getPaymentCreationDateTime() {
@@ -84,5 +67,17 @@ public abstract class AbstractPaymentMethod {
 
     public void setPaymentCompletionDateTime(LocalDateTime paymentCompletionDateTime) {
         this.paymentCompletionDateTime = paymentCompletionDateTime;
+    }
+
+    public void confirmPayment() {
+        this.paymentCompletionDateTime = LocalDateTime.now();
+    }
+
+    public String getPaymentMethodType() {
+        return this.getClass().getAnnotation(DiscriminatorValue.class).value();
+    }
+
+    public boolean matchesPaymentDetails(PaymentConfirmationRequestDTO requestDTO) {
+        return false;
     }
 }

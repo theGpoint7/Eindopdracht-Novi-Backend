@@ -90,8 +90,7 @@ public class OrderLine {
         double totalPrice = quantity * product.getPrice();
         if (product.getPromotion() != null) {
             double discountPercentage = product.getPromotion().getPromotionPercentage() / 100.0;
-            double discountedPrice = totalPrice * (1 - discountPercentage);
-            totalPrice = discountedPrice;
+            totalPrice = totalPrice * (1 - discountPercentage);
         }
 
         return totalPrice;

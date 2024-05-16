@@ -18,10 +18,6 @@ public class CartItem {
     @JoinColumn(name = "product_id", referencedColumnName = "productId")
     private AbstractProduct product;
 
-    @ManyToOne
-    @JoinColumn(name = "designer_id")
-    private Designer designer;
-
     @Column(nullable = false)
     private int quantity;
 
@@ -58,14 +54,6 @@ public class CartItem {
         this.product = product;
     }
 
-    public Designer getDesigner() {
-        return designer;
-    }
-
-    public void setDesigner(Designer designer) {
-        this.designer = designer;
-    }
-
     public int getQuantity() {
         return quantity;
     }
@@ -74,4 +62,3 @@ public class CartItem {
         this.quantity = quantity;
     }
 }
-

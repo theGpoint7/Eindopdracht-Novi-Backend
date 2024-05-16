@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<AbstractProduct, Long> {
-
     boolean existsByProductName(String productName);
 
     @Query("SELECT p FROM AbstractProduct p LEFT JOIN FETCH p.designer WHERE p.designer.storeName = :storeName")

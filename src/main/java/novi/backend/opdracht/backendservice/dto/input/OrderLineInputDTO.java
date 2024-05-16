@@ -7,7 +7,7 @@ public class OrderLineInputDTO {
     private Long productId;
 
     @NotNull
-    @Min(value = 1, message = "Quantity must be at least 1")
+    @Min(value = 1, message = "Minimale hoeveelheid is 1.")
     private int quantity;
 
     public Long getProductId() {

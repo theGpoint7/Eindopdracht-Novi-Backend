@@ -1,6 +1,10 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
+import novi.backend.opdracht.backendservice.dto.input.FeedbackInputDTO;
+import novi.backend.opdracht.backendservice.exception.BadRequestException;
+import novi.backend.opdracht.backendservice.repository.DesignerRepository;
+import novi.backend.opdracht.backendservice.repository.ProductRepository;
 
 import java.time.LocalDateTime;
 
@@ -76,5 +80,23 @@ public class Feedback {
 
     public void setFeedbackDateTime(LocalDateTime feedbackDateTime) {
         this.feedbackDateTime = feedbackDateTime;
+    }
+
+    public void validateFeedbackInput(FeedbackInputDTO feedbackInputDTO, ProductRepository productRepository, DesignerRepository designerRepository) {
+        if (feedbackInputDTO.getProductId() == null && feedbackInputDTO.getDesignerId() == null) {
+            throw new BadRequestException("Er moet een productId of een designerId worden opgegeven");
+        }
+
+        if (feedbackInputDTO.getProductId() != null) {
+            if (!productRepository.existsById(feedbackInputDTO.getProductId())) {
+                throw new BadRequestException("Product met ID " + feedbackInputDTO.getProductId() + " niet gevonden");
+            }
+        }
+
+        if (feedbackInputDTO.getDesignerId() != null) {
+            if (!designerRepository.existsById(feedbackInputDTO.getDesignerId())) {
+                throw new BadRequestException("Ontwerper met ID " + feedbackInputDTO.getDesignerId() + " niet gevonden");
+            }
+        }
     }
 }

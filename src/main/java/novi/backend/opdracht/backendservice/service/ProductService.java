@@ -7,21 +7,22 @@ import novi.backend.opdracht.backendservice.exception.ProductNameTooLongExceptio
 import novi.backend.opdracht.backendservice.model.*;
 import novi.backend.opdracht.backendservice.repository.DesignerRepository;
 import novi.backend.opdracht.backendservice.repository.ProductRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
     private final DesignerRepository designerRepository;
+    private final AuthenticationService authenticationService;
 
-    public ProductService(ProductRepository productRepository, DesignerRepository designerRepository) {
+    public ProductService(ProductRepository productRepository, DesignerRepository designerRepository, AuthenticationService authenticationService) {
         this.productRepository = productRepository;
         this.designerRepository = designerRepository;
+        this.authenticationService = authenticationService;
     }
 
     public ProductOutputDTO getProductById(Long productId) {
@@ -31,10 +32,10 @@ public class ProductService {
     }
 
     public ProductOutputDTO createProduct(ProductInputDTO productInputDTO) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = authenticationService.getCurrentUser();
 
-        Optional<Designer> designerOptional = designerRepository.findByUserUsername(username);
-        Designer designer = designerOptional.orElseThrow(() -> new RuntimeException("Ontwerper niet gevonden voor gebruikersnaam: " + username));
+        Designer designer = designerRepository.findByUserUsername(user.getUsername())
+                .orElseThrow(() -> new RuntimeException("Ontwerper niet gevonden voor gebruikersnaam: " + user.getUsername()));
         if (productRepository.existsByProductName(productInputDTO.getProductName())) {
             throw new BadRequestException("U kunt dit product niet maken, de naam bestaat al.");
         }
@@ -43,35 +44,24 @@ public class ProductService {
         switch (productInputDTO.getProductType()) {
             case "Clothing":
                 Clothing clothing = new Clothing();
-                clothing.setClothingSize(productInputDTO.getClothingSize());
-                clothing.setColor(productInputDTO.getColor());
-                clothing.setFit(productInputDTO.getFit());
+                clothing.updateSpecificFields(productInputDTO);
                 product = clothing;
                 break;
             case "Accessory":
                 Accessory accessory = new Accessory();
-                accessory.setAccessoryType(AccessoryType.valueOf(productInputDTO.getAccessoryType()));
+                accessory.updateSpecificFields(productInputDTO);
                 product = accessory;
                 break;
             case "Footwear":
                 Footwear footwear = new Footwear();
-                footwear.setFootwearSize(productInputDTO.getFootwearSize());
-                footwear.setGender(productInputDTO.getGender());
+                footwear.updateSpecificFields(productInputDTO);
                 product = footwear;
                 break;
             default:
                 throw new BadRequestException("Ongeldig producttype: " + productInputDTO.getProductType());
         }
 
-        product.setProductName(productInputDTO.getProductName());
-        product.setProductType(productInputDTO.getProductType());
-        product.setPrice(productInputDTO.getPrice());
-        product.setInventoryCount(productInputDTO.getInventoryCount());
-        product.setImageUrl(productInputDTO.getImageUrl());
-        product.setProductDescription(productInputDTO.getProductDescription());
-        product.setMaterial(productInputDTO.getMaterial());
-
-        designer = designerRepository.save(designer);
+        product.updateCommonFields(productInputDTO);
         product.setDesigner(designer);
 
         product = productRepository.save(product);
@@ -80,10 +70,10 @@ public class ProductService {
     }
 
     public ProductOutputDTO updateProduct(Long productId, ProductInputDTO productInputDTO) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = authenticationService.getCurrentUser();
 
-        Designer designer = designerRepository.findByUserUsername(username)
-                .orElseThrow(() -> new RuntimeException("Ontwerper niet gevonden voor gebruikersnaam: " + username));
+        Designer designer = designerRepository.findByUserUsername(user.getUsername())
+                .orElseThrow(() -> new RuntimeException("Ontwerper niet gevonden voor gebruikersnaam: " + user.getUsername()));
 
         AbstractProduct product = productRepository.findById(productId)
                 .orElseThrow(() -> new BadRequestException("Product niet gevonden"));
@@ -96,24 +86,16 @@ public class ProductService {
             throw new ProductNameTooLongException("Productnaam bestaat al");
         }
 
-        product.setProductName(productInputDTO.getProductName());
-        product.setProductType(productInputDTO.getProductType());
-        product.setPrice(productInputDTO.getPrice());
-        product.setInventoryCount(productInputDTO.getInventoryCount());
-        product.setImageUrl(productInputDTO.getImageUrl());
-        product.setProductDescription(productInputDTO.getProductDescription());
-        product.setMaterial(productInputDTO.getMaterial());
+        product.updateCommonFields(productInputDTO);
 
-        if (product instanceof Clothing clothing) {
-            clothing.setClothingSize(productInputDTO.getClothingSize());
-            clothing.setColor(productInputDTO.getColor());
-            clothing.setFit(productInputDTO.getFit());
-        } else if (product instanceof Accessory accessory) {
-            accessory.setAccessoryType(AccessoryType.valueOf(productInputDTO.getAccessoryType()));
-        } else if (product instanceof Footwear footwear) {
-            footwear.setFootwearSize(productInputDTO.getFootwearSize());
-            footwear.setGender(productInputDTO.getGender());
+        if (product instanceof Clothing) {
+            ((Clothing) product).updateSpecificFields(productInputDTO);
+        } else if (product instanceof Accessory) {
+            ((Accessory) product).updateSpecificFields(productInputDTO);
+        } else if (product instanceof Footwear) {
+            ((Footwear) product).updateSpecificFields(productInputDTO);
         }
+
         product = productRepository.save(product);
         return toProductOutputDTO(product);
     }
@@ -129,40 +111,19 @@ public class ProductService {
 
         if (footwearSize != null) {
             products = products.stream()
-                    .filter(product -> {
-                        if (product instanceof Footwear) {
-                            return ((Footwear) product).getFootwearSize() != null &&
-                                    ((Footwear) product).getFootwearSize() == footwearSize.intValue();
-                        } else {
-                            return false;
-                        }
-                    })
+                    .filter(product -> product instanceof Footwear && ((Footwear) product).getFootwearSize() != null && Objects.equals(((Footwear) product).getFootwearSize(), footwearSize))
                     .collect(Collectors.toList());
         }
 
         if (clothingSize != null) {
             products = products.stream()
-                    .filter(product -> {
-                        if (product instanceof Clothing) {
-                            return ((Clothing) product).getClothingSize() != null &&
-                                    ((Clothing) product).getClothingSize().equals(clothingSize);
-                        } else {
-                            return false;
-                        }
-                    })
+                    .filter(product -> product instanceof Clothing && ((Clothing) product).getClothingSize() != null && ((Clothing) product).getClothingSize().equals(clothingSize))
                     .collect(Collectors.toList());
         }
 
         if (color != null) {
             products = products.stream()
-                    .filter(product -> {
-                        if (product instanceof Clothing) {
-                            return ((Clothing) product).getColor() != null &&
-                                    ((Clothing) product).getColor().equals(color);
-                        } else {
-                            return false;
-                        }
-                    })
+                    .filter(product -> product instanceof Clothing && ((Clothing) product).getColor() != null && ((Clothing) product).getColor().equals(color))
                     .collect(Collectors.toList());
         }
 
@@ -203,7 +164,7 @@ public class ProductService {
         if (product.getPromotion() != null) {
             ProductOutputDTO.PromotionInfo promotionDTO = new ProductOutputDTO.PromotionInfo();
             promotionDTO.setPromotionId(product.getPromotion().getPromotionId());
-            promotionDTO.setPromotionDetails(product.getPromotion().getPromotionName());
+            promotionDTO.setPromotionDetails(product.getPromotion().getPromotionDescription());
             promotionDTO.setPromotionDescription(product.getPromotion().getPromotionDescription());
             promotionDTO.setPromotionPercentage(product.getPromotion().getPromotionPercentage());
             promotionDTO.setPromotionEndDateTime(product.getPromotion().getPromotionEndDateTime());

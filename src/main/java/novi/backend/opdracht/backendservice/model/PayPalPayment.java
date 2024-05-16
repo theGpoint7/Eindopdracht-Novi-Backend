@@ -1,6 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.Entity;
+import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDTO;
 
 @Entity
 public class PayPalPayment extends AbstractPaymentMethod {
@@ -22,5 +23,11 @@ public class PayPalPayment extends AbstractPaymentMethod {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public boolean matchesPaymentDetails(PaymentConfirmationRequestDTO requestDTO) {
+        return this.email.equals(requestDTO.getEmail()) &&
+                this.password.equals(requestDTO.getPassword());
     }
 }

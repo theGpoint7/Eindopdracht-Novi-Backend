@@ -9,8 +9,8 @@ public class FeedbackInputDTO {
     private Long productId;
     private Long designerId;
 
-    @NotBlank(message = "Feedback content must not be blank")
-    @Size(min = 5, max = 1000, message = "Feedback content must be between 5 and 1000 characters")
+    @NotBlank(message = "Feedbackinhoud mag niet leeg zijn.")
+    @Size(min = 5, max = 1000, message = "Feedbackinhoud moet tussen 5 en 1000 tekens bevatten.")
     private String content;
 
     private String username;
