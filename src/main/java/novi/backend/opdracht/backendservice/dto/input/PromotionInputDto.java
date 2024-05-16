@@ -8,14 +8,14 @@ import java.time.LocalDateTime;
 
 public class PromotionInputDto {
 
-    @NotBlank(message = "Promotion name cannot be empty.")
-    @Size(max = 255, message = "Promotion name cannot exceed 255 characters.")
+    @NotBlank(message = "Promotienaam mag niet leeg zijn.")
+    @Size(max = 255, message = "Promotienaam mag niet langer zijn dan 255 tekens.")
     private String promotionName;
 
-    @Size(max = 1000, message = "Promotion description must be shorter than 1000 characters.")
+    @Size(max = 1000, message = "Promotiebeschrijving moet korter zijn dan 1000 tekens.")
     private String promotionDescription;
 
-    @NotNull(message = "Promotion percentage cannot be empty.")
+    @NotNull(message = "Promotiepercentage mag niet leeg zijn.")
     private double promotionPercentage;
 
     private LocalDateTime promotionStartDateTime;
@@ -64,4 +64,3 @@ public class PromotionInputDto {
         this.promotionEndDateTime = promotionEndDateTime;
     }
 }
-

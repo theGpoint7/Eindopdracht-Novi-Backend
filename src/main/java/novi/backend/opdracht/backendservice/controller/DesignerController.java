@@ -2,11 +2,12 @@ package novi.backend.opdracht.backendservice.controller;
 
 import novi.backend.opdracht.backendservice.dto.input.ApplyPromotionRequest;
 import novi.backend.opdracht.backendservice.dto.input.PromotionInputDto;
-import novi.backend.opdracht.backendservice.dto.input.SalesFiguresDto;
+import novi.backend.opdracht.backendservice.dto.output.SalesFiguresDto;
 import novi.backend.opdracht.backendservice.dto.output.DesignerResponseDto;
 import novi.backend.opdracht.backendservice.dto.output.PromotionResponseDto;
 import novi.backend.opdracht.backendservice.service.DesignerService;
 import novi.backend.opdracht.backendservice.service.PromotionService;
+import novi.backend.opdracht.backendservice.service.ValidationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,10 +21,12 @@ public class DesignerController {
 
     private final DesignerService designerService;
     private final PromotionService promotionService;
+    private final ValidationService validationService;
 
-    public DesignerController(DesignerService designerService, PromotionService promotionService) {
+    public DesignerController(DesignerService designerService, PromotionService promotionService, ValidationService validationService) {
         this.designerService = designerService;
         this.promotionService = promotionService;
+        this.validationService = validationService;
     }
 
     @GetMapping
@@ -47,7 +50,7 @@ public class DesignerController {
             @Valid @RequestBody PromotionInputDto promotionInputDto) {
         try {
             promotionService.createPromotion(designerId, promotionInputDto);
-            return ResponseEntity.ok("Promotie succesvol aangemaakt");
+            return ResponseEntity.ok("Promotie succesvol aangemaakt.");
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body("Kon promotie niet aanmaken: " + ex.getMessage());
         }
@@ -71,7 +74,7 @@ public class DesignerController {
             Long productId = requestDto.getProductId();
             Long promotionId = requestDto.getPromotionId();
             promotionService.applyPromotionToProduct(productId, designerId, promotionId);
-            return ResponseEntity.ok("Promotie succesvol toegepast op product");
+            return ResponseEntity.ok("Promotie succesvol toegepast op product.");
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body("Kon promotie niet toepassen op product: " + ex.getMessage());
         }

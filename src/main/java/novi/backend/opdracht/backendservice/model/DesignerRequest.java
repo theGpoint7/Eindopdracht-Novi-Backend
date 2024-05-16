@@ -1,6 +1,8 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
+import novi.backend.opdracht.backendservice.dto.input.DesignerRequestDto;
+import novi.backend.opdracht.backendservice.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 
@@ -100,5 +102,26 @@ public class DesignerRequest {
 
     public void setRejectionReason(String rejectionReason) {
         this.rejectionReason = rejectionReason;
+    }
+
+    public void approve() {
+        this.status = DesignerRequestStatus.APPROVED;
+        this.approvalDateTime = LocalDateTime.now();
+    }
+
+    public void reject(String rejectionReason) {
+        this.status = DesignerRequestStatus.DENIED;
+        this.rejectionDateTime = LocalDateTime.now();
+        this.rejectionReason = rejectionReason;
+    }
+
+    public void validateSubmission(DesignerRequestDto designerRequestDTO, User user) {
+        if (designerRequestDTO.getKvkNumber() == null || designerRequestDTO.getKvkNumber().isEmpty()) {
+            throw new BadRequestException("KvK-nummer is vereist");
+        }
+        this.setUser(user);
+        this.setKvkNumber(designerRequestDTO.getKvkNumber());
+        this.setRequestDateTime(LocalDateTime.now());
+        this.setStatus(DesignerRequestStatus.PENDING);
     }
 }

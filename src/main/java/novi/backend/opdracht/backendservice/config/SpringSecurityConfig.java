@@ -2,7 +2,7 @@ package novi.backend.opdracht.backendservice.config;
 
 import novi.backend.opdracht.backendservice.exception.CustomAccessDeniedHandler;
 import novi.backend.opdracht.backendservice.filter.JwtRequestFilter;
-import novi.backend.opdracht.backendservice.service.CustomUserDetailsService;
+import novi.backend.opdracht.backendservice.service.AuthenticationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,11 +24,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SpringSecurityConfig {
 
-    public final CustomUserDetailsService customUserDetailsService;
+    public final AuthenticationService authenticationService;
     private final JwtRequestFilter jwtRequestFilter;
 
-    public SpringSecurityConfig(CustomUserDetailsService customUserDetailsService, JwtRequestFilter jwtRequestFilter) {
-        this.customUserDetailsService = customUserDetailsService;
+    public SpringSecurityConfig(AuthenticationService authenticationService, JwtRequestFilter jwtRequestFilter) {
+        this.authenticationService = authenticationService;
         this.jwtRequestFilter = jwtRequestFilter;
     }
 
@@ -41,7 +41,7 @@ public class SpringSecurityConfig {
     public AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {
         var auth = new DaoAuthenticationProvider();
         auth.setPasswordEncoder(passwordEncoder);
-        auth.setUserDetailsService(customUserDetailsService);
+        auth.setUserDetailsService(authenticationService);
         return new ProviderManager(auth);
     }
 

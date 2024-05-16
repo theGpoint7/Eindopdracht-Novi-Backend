@@ -4,17 +4,13 @@ import novi.backend.opdracht.backendservice.dto.input.UpdateUserRequest;
 import novi.backend.opdracht.backendservice.dto.input.UserRequest;
 import novi.backend.opdracht.backendservice.dto.output.FilteredUserResponse;
 import novi.backend.opdracht.backendservice.dto.output.UserResponse;
-import novi.backend.opdracht.backendservice.exception.*;
+
+import novi.backend.opdracht.backendservice.exception.UsernameExistsException;
 import novi.backend.opdracht.backendservice.model.Authority;
 import novi.backend.opdracht.backendservice.model.Role;
 import novi.backend.opdracht.backendservice.model.User;
 import novi.backend.opdracht.backendservice.repository.UserRepository;
-
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AuthorizationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,95 +23,26 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationService authenticationService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationService authenticationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationService = authenticationService;
     }
-
-    public String getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof UserDetails userDetails)) {
-            throw new AuthenticationException("User not authenticated");
-        }
-        return userDetails.getUsername();
-    }
-
-    public List<UserResponse> getUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(this::fromUser)
-                .collect(Collectors.toList());
-    }
-
-    public List<FilteredUserResponse> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(this::mapToFullUserResponse)
-                .collect(Collectors.toList());
-    }
-
-    public UserResponse getUserResponse(String username) {
-        Optional<User> user = userRepository.findById(username);
-        if (user.isPresent()) {
-            return fromUser(user.get());
-        } else {
-            throw new UsernameNotFoundException(username);
-        }
-    }
-
-    public FilteredUserResponse getFilteredUserResponse(String username) {
-        Optional<User> user = userRepository.findById(username);
-        if (user.isPresent()) {
-            return mapToFilteredUserResponse(user.get());
-        } else {
-            throw new UsernameNotFoundException(username);
-        }
-    }
-
-    private FilteredUserResponse mapToFilteredUserResponse(User user) {
-        var response = new FilteredUserResponse();
-        response.setUsername(user.getUsername());
-        response.setLastName(user.getLastName());
-        response.setEmail(user.getEmail());
-        return response;
-    }
-
-
-    public boolean userExists(String username) {
-        return userRepository.existsById(username);
-    }
-
-    public ResponseEntity<?> getUser(String username) {
-        String currentUser = getCurrentUser();
-        if (currentUser.equals(username)) {
-            var fullUserResponse = getUser(username);
-            return ResponseEntity.ok().body(fullUserResponse);
-        } else {
-            List<FilteredUserResponse> allUsers = getAllUsers();
-            Optional<FilteredUserResponse> user = allUsers.stream()
-                    .filter(u -> u.getUsername().equals(username))
-                    .findFirst();
-            if (user.isPresent()) {
-                return ResponseEntity.ok().body(user.get());
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        }
-    }
-
 
     public String createUser(UserRequest userRequest) {
-        if (userExists(userRequest.getUsername())) {
-            throw new UsernameExistsException("Username already exists: " + userRequest.getUsername());
+        if (userRepository.existsById(userRequest.getUsername())) {
+            throw new UsernameExistsException("Gebruikersnaam bestaat al: " + userRequest.getUsername());
         }
         String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
         userRequest.setPassword(encodedPassword);
         userRequest.setUserCreatedOn(LocalDate.now());
         User newUser = toUser(userRequest);
-        newUser.setEnabledAccount(true);
+        newUser.enableAccount();
         newUser = userRepository.save(newUser);
         addAuthority(newUser.getUsername(), Role.ROLE_CUSTOMER);
 
@@ -123,39 +50,38 @@ public class UserService {
     }
 
     public void deleteUserAccount(String username, String confirmUsername, String confirmPassword) {
-        String currentUser = getCurrentUser();
-        if (!currentUser.equals(username)) {
-            throw new AuthorizationServiceException("You are not authorized to delete another user's account");
+        User currentUser = authenticationService.getCurrentUser();
+        if (!currentUser.getUsername().equals(username)) {
+            throw new AuthorizationServiceException("U bent niet gemachtigd om het account van een andere gebruiker te verwijderen");
         }
         if (!username.equals(confirmUsername)) {
-            throw new AuthorizationServiceException("Confirmation username does not match the user being deleted");
+            throw new AuthorizationServiceException("Bevestigingsgebruikersnaam komt niet overeen met de gebruiker die wordt verwijderd");
         }
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new UsernameNotFoundException(username));
+                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden: " + username));
         if (!passwordEncoder.matches(confirmPassword, user.getPassword())) {
-            throw new AuthorizationServiceException("Incorrect confirmation password");
+            throw new AuthorizationServiceException("Onjuist bevestigingswachtwoord");
         }
         userRepository.deleteById(username);
     }
 
     public void disableUserAccount(String username, String confirmUsername, String confirmPassword) {
-        String currentUser = getCurrentUser();
-        if (!currentUser.equals(username)) {
-            throw new AuthorizationServiceException("You are not authorized to disable another user's account");
+        User currentUser = authenticationService.getCurrentUser();
+        if (!currentUser.getUsername().equals(username)) {
+            throw new AuthorizationServiceException("U bent niet gemachtigd om het account van een andere gebruiker te deactiveren");
         }
         if (!username.equals(confirmUsername)) {
-            throw new AuthorizationServiceException("Confirmation username does not match the user being disabled");
+            throw new AuthorizationServiceException("Bevestigingsgebruikersnaam komt niet overeen met de gebruiker die wordt gedeactiveerd");
         }
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden: " + username));
         if (!passwordEncoder.matches(confirmPassword, user.getPassword())) {
-            throw new AuthorizationServiceException("Incorrect confirmation password");
+            throw new AuthorizationServiceException("Onjuist bevestigingswachtwoord");
         }
-        user.setEnabledAccount(false);
+        user.disableAccount();
         removeRoles(user);
         userRepository.save(user);
     }
-
 
     private void removeRoles(User user) {
         removeAuthority(user.getUsername(), Role.ROLE_CUSTOMER);
@@ -163,90 +89,69 @@ public class UserService {
     }
 
     public UserResponse updateUserInformation(String username, UpdateUserRequest updateUserRequest) {
-        String currentUser = getCurrentUser();
-        if (!currentUser.equals(username)) {
-            throw new AuthorizationServiceException("You are not authorized to update another user's information");
-        }
-        if (!userExists(username)) {
-            throw new UsernameNotFoundException(username);
+        User currentUser = authenticationService.getCurrentUser();
+        if (!currentUser.getUsername().equals(username)) {
+            throw new AuthorizationServiceException("U bent niet gemachtigd om de gegevens van een andere gebruiker bij te werken");
         }
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new UsernameNotFoundException(username));
-
-        if (updateUserRequest.getEmail() != null) {
-            user.setEmail(updateUserRequest.getEmail());
-        }
-        if (updateUserRequest.getFirstName() != null) {
-            user.setFirstName(updateUserRequest.getFirstName());
-        }
-        if (updateUserRequest.getLastName() != null) {
-            user.setLastName(updateUserRequest.getLastName());
-        }
-        if (updateUserRequest.getDateOfBirth() != null) {
-            user.setDateOfBirth(updateUserRequest.getDateOfBirth());
-        }
-        if (updateUserRequest.getAddress() != null) {
-            user.setAddress(updateUserRequest.getAddress());
-        }
-        if (updateUserRequest.getPhoneNo() != null) {
-            user.setPhoneNo(updateUserRequest.getPhoneNo());
-        }
+                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden: " + username));
+        user.updateInformation(updateUserRequest);
         User updatedUser = userRepository.save(user);
         return fromUser(updatedUser);
     }
 
     public UserResponse updateUserPassword(String username, String currentPassword, String newPassword) {
-        String currentUser = getCurrentUser();
-        if (!currentUser.equals(username)) {
-            throw new AuthorizationServiceException("You are not authorized to update another user's password");
+        User currentUser = authenticationService.getCurrentUser();
+        if (!currentUser.getUsername().equals(username)) {
+            throw new AuthorizationServiceException("U bent niet gemachtigd om het wachtwoord van een andere gebruiker bij te werken");
         }
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new UsernameNotFoundException(username));
+                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden: " + username));
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new AuthorizationServiceException("Incorrect current password");
+            throw new AuthorizationServiceException("Onjuist huidig wachtwoord");
         }
-        String encodedNewPassword = passwordEncoder.encode(newPassword);
-        user.setPassword(encodedNewPassword);
+        user.updatePassword(passwordEncoder.encode(newPassword));
         User updatedUser = userRepository.save(user);
         return fromUser(updatedUser);
     }
 
-
     public Set<Role> getAuthorities(String username) {
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new UsernameNotFoundException(username));
+                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden: " + username));
         return user.getAuthorities().stream().map(Authority::getAuthority).collect(Collectors.toSet());
     }
 
     public void addAuthority(String username, Role role) {
-        if (!userRepository.existsById(username)) {
-            throw new UsernameNotFoundException(username);
-        }
-
-        try {
-            User user = userRepository.findById(username).orElseThrow(() -> new UsernameNotFoundException(username));
-            user.addAuthority(new Authority(username, role));
-            userRepository.save(user);
-        } catch (Exception ex) {
-            throw new BadRequestException("Error adding authority for user: " + username);
-        }
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden: " + username));
+        user.addAuthority(new Authority(username, role));
+        userRepository.save(user);
     }
 
     public void removeAuthority(String username, Role role) {
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new UsernameNotFoundException(username));
-        Optional<Authority> authorityToRemove = user.getAuthorities()
-                .stream()
+                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden: " + username));
+        Optional<Authority> authorityToRemove = user.getAuthorities().stream()
                 .filter(a -> a.getAuthority() == role)
                 .findAny();
         authorityToRemove.ifPresent(user::removeAuthority);
         userRepository.save(user);
     }
 
+    public UserResponse getUserResponse(String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden: " + username));
+        return fromUser(user);
+    }
 
+    public FilteredUserResponse getFilteredUserResponse(String username) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden: " + username));
+        return mapToFilteredUserResponse(user);
+    }
 
     private UserResponse fromUser(User user) {
-        var response = new UserResponse();
+        UserResponse response = new UserResponse();
         response.setUserName(user.getUsername());
         response.setEmail(user.getEmail());
         response.setFirstName(user.getFirstName());
@@ -261,8 +166,8 @@ public class UserService {
         return response;
     }
 
-    private FilteredUserResponse mapToFullUserResponse(User user) {
-        var response = new FilteredUserResponse();
+    private FilteredUserResponse mapToFilteredUserResponse(User user) {
+        FilteredUserResponse response = new FilteredUserResponse();
         response.setUsername(user.getUsername());
         response.setLastName(user.getLastName());
         response.setEmail(user.getEmail());
@@ -270,7 +175,7 @@ public class UserService {
     }
 
     private User toUser(UserRequest userRequest) {
-        var user = new User();
+        User user = new User();
         user.setUsername(userRequest.getUsername());
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         user.setEmail(userRequest.getEmail());
@@ -281,5 +186,14 @@ public class UserService {
         user.setPhoneNo(userRequest.getPhoneNo());
         user.setUserCreatedOn(userRequest.getUserCreatedOn());
         return user;
+    }
+
+    public List<FilteredUserResponse> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream().map(this::mapToFilteredUserResponse).collect(Collectors.toList());
+    }
+
+    public User getCurrentUser() {
+        return authenticationService.getCurrentUser();
     }
 }

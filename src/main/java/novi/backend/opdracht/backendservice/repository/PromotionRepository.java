@@ -8,7 +8,5 @@ import java.util.List;
 @Repository
 public interface PromotionRepository extends JpaRepository<Promotion, Long> {
     List<Promotion> findByDesignerDesignerId(Long designerId);
-    List<Promotion> findByPromotionName(String promotionName);
-
     boolean existsByPromotionName(String promotionName);
 }

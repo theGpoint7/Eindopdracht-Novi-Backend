@@ -1,6 +1,6 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.SalesFiguresDto;
+import novi.backend.opdracht.backendservice.dto.output.SalesFiguresDto;
 import novi.backend.opdracht.backendservice.dto.output.DesignerResponseDto;
 import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDTO;
 import novi.backend.opdracht.backendservice.exception.AuthenticationException;
@@ -19,13 +19,10 @@ public class DesignerService {
 
     private final DesignerRepository designerRepository;
     private final OrderRepository orderRepository;
-    private final OrderService orderService;
 
-
-    public DesignerService(DesignerRepository designerRepository, OrderRepository orderRepository, OrderService orderService) {
+    public DesignerService(DesignerRepository designerRepository, OrderRepository orderRepository) {
         this.designerRepository = designerRepository;
         this.orderRepository = orderRepository;
-        this.orderService = orderService;
     }
 
     public List<DesignerResponseDto> getAllDesigners() {
@@ -37,73 +34,27 @@ public class DesignerService {
 
     public DesignerResponseDto getDesignerProfile(Long designerId) {
         Designer designer = designerRepository.findById(designerId)
-                .orElseThrow(() -> new RuntimeException("Designer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Designer niet gevonden."));
         return mapToDesignerResponseDto(designer);
     }
 
     public SalesFiguresDto getSalesFiguresByDesignerId(Long designerId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Designer designer = designerRepository.findById(designerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Designer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Designer niet gevonden."));
         if (!designer.getUser().getUsername().equals(username)) {
-            throw new AuthenticationException("You are not authorized to view sales figures for this designer");
+            throw new AuthenticationException("U bent niet gemachtigd om de verkoopcijfers van deze designer te bekijken.");
         }
-        double totalSales = getTotalSalesByDesignerId(designerId);
-        double totalPromotions = getTotalPromotionsByDesignerId(designerId);
-        double netSales = totalSales - totalPromotions;
+
+        List<Order> orders = orderRepository.findAllByDesignerId(designerId);
+        double netSales = designer.calculateTotalSales(orders);
 
         SalesFiguresDto salesFiguresDto = new SalesFiguresDto();
         salesFiguresDto.setTotalSales(netSales);
+        salesFiguresDto.setTotalOrders(orders.size());
 
         return salesFiguresDto;
     }
-
-
-
-    public SalesFiguresDto getSalesFigures(Long designerId) {
-        double totalSales = getTotalSalesByDesignerId(designerId);
-        double totalPromotions = getTotalPromotionsByDesignerId(designerId);
-        double netSales = totalSales - totalPromotions;
-
-        SalesFiguresDto salesFiguresDto = new SalesFiguresDto();
-        salesFiguresDto.setTotalSales(netSales);
-
-        return salesFiguresDto;
-    }
-
-
-    public double getTotalSalesByDesignerId(Long designerId) {
-        return orderService.getTotalSalesByDesignerId(designerId);
-    }
-
-    private double getTotalPromotionsByDesignerId(Long designerId) {
-        List<Order> orders = orderRepository.findAllByUserDesignerDesignerId(designerId);
-        if (orders.isEmpty()) {
-            System.out.println("No orders found for designer ID: " + designerId);
-            return 0.0;
-        }
-        return orders.stream()
-                .peek(order -> System.out.println("Order ID: " + order.getOrderId() + " has " + order.getOrderLines().size() + " lines."))
-                .mapToDouble(this::calculatePromotions)
-                .peek(totalDiscount -> System.out.println("Total discount calculated: " + totalDiscount))
-                .sum();
-    }
-
-    private double calculatePromotions(Order order) {
-        double totalDiscount = 0.0;
-        for (OrderLine orderLine : order.getOrderLines()) {
-            AbstractProduct product = orderLine.getProduct();
-            if (product != null && product.getPromotion() != null) {
-                double promotionPercentage = product.getPromotion().getPromotionPercentage();
-                double discountAmount = (orderLine.getPrice() * orderLine.getQuantity() * promotionPercentage) / 100.0;
-                totalDiscount += discountAmount;
-                System.out.println("Calculated discount for order line: " + discountAmount);
-            }
-        }
-        return totalDiscount;
-    }
-
-
 
     private DesignerResponseDto mapToDesignerResponseDto(Designer designer) {
         DesignerResponseDto dto = new DesignerResponseDto();
@@ -132,5 +83,4 @@ public class DesignerService {
         feedbackOutputDTO.setFeedbackDateTime(feedback.getFeedbackDateTime());
         return feedbackOutputDTO;
     }
-
 }

@@ -1,7 +1,6 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
-
 import java.util.List;
 
 @Entity
@@ -25,6 +24,8 @@ public class Designer {
     @OneToMany(mappedBy = "designer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Feedback> feedbacks;
 
+    @OneToMany(mappedBy = "designer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Promotion> promotions;
 
     public Designer() {
     }
@@ -67,5 +68,40 @@ public class Designer {
 
     public void setFeedbacks(List<Feedback> feedbacks) {
         this.feedbacks = feedbacks;
+    }
+
+    public List<Promotion> getPromotions() {
+        return promotions;
+    }
+
+    public void setPromotions(List<Promotion> promotions) {
+        this.promotions = promotions;
+    }
+
+    public double calculateTotalSales(List<Order> orders) {
+        return orders.stream()
+                .filter(order -> order.getDesignerId().equals(this.designerId))
+                .mapToDouble(Order::getAmount)
+                .sum();
+    }
+
+    public double calculateTotalPromotions(List<Order> orders) {
+        return orders.stream()
+                .filter(order -> order.getDesignerId().equals(this.designerId))
+                .mapToDouble(Order::calculateTotalDiscount)
+                .sum();
+    }
+
+    private double calculatePromotions(Order order) {
+        return order.getOrderLines().stream()
+                .mapToDouble(orderLine -> {
+                    AbstractProduct product = orderLine.getProduct();
+                    if (product != null && product.getPromotion() != null) {
+                        double promotionPercentage = product.getPromotion().getPromotionPercentage();
+                        return (orderLine.getPrice() * orderLine.getQuantity() * promotionPercentage) / 100.0;
+                    }
+                    return 0.0;
+                })
+                .sum();
     }
 }

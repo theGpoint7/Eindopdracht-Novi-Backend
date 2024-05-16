@@ -9,6 +9,11 @@ public class CartItemInputDTO {
     @NotNull
     private int quantity;
 
+    public CartItemInputDTO(Long productId, int quantity) {
+        this.productId = productId;
+        this.quantity = quantity;
+    }
+
     public Long getProductId() {
         return productId;
     }

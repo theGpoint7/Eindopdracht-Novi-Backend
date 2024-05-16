@@ -2,6 +2,7 @@ package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDTO;
 
 @Entity
 @DiscriminatorValue("BANK_TRANSFER")
@@ -24,5 +25,11 @@ public class BankTransferPayment extends AbstractPaymentMethod {
 
     public void setBankCode(String bankCode) {
         this.bankCode = bankCode;
+    }
+
+    @Override
+    public boolean matchesPaymentDetails(PaymentConfirmationRequestDTO requestDTO) {
+        return this.accountNumber.equals(requestDTO.getAccountNumber()) &&
+                this.bankCode.equals(requestDTO.getBankCode());
     }
 }

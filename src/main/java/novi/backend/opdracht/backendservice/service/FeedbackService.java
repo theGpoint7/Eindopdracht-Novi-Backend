@@ -7,8 +7,6 @@ import novi.backend.opdracht.backendservice.model.*;
 import novi.backend.opdracht.backendservice.repository.DesignerRepository;
 import novi.backend.opdracht.backendservice.repository.FeedbackRepository;
 import novi.backend.opdracht.backendservice.repository.ProductRepository;
-import novi.backend.opdracht.backendservice.repository.UserRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,23 +18,35 @@ public class FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
     private final ProductRepository productRepository;
-    private final UserRepository userRepository;
     private final DesignerRepository designerRepository;
+    private final AuthenticationService authenticationService;
 
-    public FeedbackService(FeedbackRepository feedbackRepository, ProductRepository productRepository, UserRepository userRepository, DesignerRepository designerRepository) {
+    public FeedbackService(FeedbackRepository feedbackRepository, ProductRepository productRepository, DesignerRepository designerRepository, AuthenticationService authenticationService) {
         this.feedbackRepository = feedbackRepository;
         this.productRepository = productRepository;
-        this.userRepository = userRepository;
         this.designerRepository = designerRepository;
+        this.authenticationService = authenticationService;
     }
 
     public FeedbackOutputDTO postFeedback(FeedbackInputDTO feedbackInputDTO) {
-        validateFeedbackInput(feedbackInputDTO);
+        User user = authenticationService.getCurrentUser();
+        Feedback feedback = new Feedback();
+        feedback.validateFeedbackInput(feedbackInputDTO, productRepository, designerRepository);
 
-        User user = getCurrentUser();
-        Feedback feedback = createFeedback(feedbackInputDTO, user);
+        feedback.setUser(user);
+
+        if (feedbackInputDTO.getProductId() != null) {
+            AbstractProduct product = findProductById(feedbackInputDTO.getProductId());
+            feedback.setProduct(product);
+        } else if (feedbackInputDTO.getDesignerId() != null) {
+            Designer designer = findDesignerById(feedbackInputDTO.getDesignerId());
+            feedback.setDesigner(designer);
+        }
+
+        feedback.setContent(feedbackInputDTO.getContent());
+        feedback.setFeedbackDateTime(LocalDateTime.now());
+
         Feedback savedFeedback = feedbackRepository.save(feedback);
-
         return mapToFeedbackOutputDTO(savedFeedback);
     }
 
@@ -52,44 +62,19 @@ public class FeedbackService {
                 .collect(Collectors.toList());
     }
 
-    private User getCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new BadRequestException("User not found"));
-    }
-
-    private Feedback createFeedback(FeedbackInputDTO feedbackInputDTO, User user) {
-        Feedback feedback = new Feedback();
-        feedback.setUser(user);
-
-        if (feedbackInputDTO.getProductId() != null) {
-            AbstractProduct product = findProductById(feedbackInputDTO.getProductId());
-            feedback.setProduct(product);
-        } else if (feedbackInputDTO.getDesignerId() != null) {
-            Designer designer = findDesignerById(feedbackInputDTO.getDesignerId());
-            feedback.setDesigner(designer);
-        } else {
-            throw new BadRequestException("Either productId or designerId must be provided");
-        }
-
-        feedback.setContent(feedbackInputDTO.getContent());
-        feedback.setFeedbackDateTime(LocalDateTime.now());
-        return feedback;
-    }
-
     private AbstractProduct findProductById(Long productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new BadRequestException("Product not found"));
+                .orElseThrow(() -> new BadRequestException("Product niet gevonden"));
     }
 
     private Designer findDesignerById(Long designerId) {
         return designerRepository.findById(designerId)
-                .orElseThrow(() -> new BadRequestException("Designer not found"));
+                .orElseThrow(() -> new BadRequestException("Ontwerper niet gevonden"));
     }
 
     private Feedback findFeedbackById(Long feedbackId) {
         return feedbackRepository.findById(feedbackId)
-                .orElseThrow(() -> new BadRequestException("Feedback not found"));
+                .orElseThrow(() -> new BadRequestException("Feedback niet gevonden"));
     }
 
     private FeedbackOutputDTO mapToFeedbackOutputDTO(Feedback feedback) {
@@ -99,12 +84,12 @@ public class FeedbackService {
 
         if (feedback.getProduct() != null) {
             outputDTO.setProductId(feedback.getProduct().getProductId());
-            outputDTO.setFeedbackDateTime(feedback.getFeedbackDateTime());
         } else if (feedback.getDesigner() != null) {
             outputDTO.setDesignerId(feedback.getDesigner().getDesignerId());
         }
 
         outputDTO.setContent(feedback.getContent());
+        outputDTO.setFeedbackDateTime(feedback.getFeedbackDateTime());
         return outputDTO;
     }
 
@@ -121,23 +106,5 @@ public class FeedbackService {
         return feedbacks.stream()
                 .map(this::mapToFeedbackOutputDTO)
                 .collect(Collectors.toList());
-    }
-
-    private void validateFeedbackInput(FeedbackInputDTO feedbackInputDTO) {
-        if (feedbackInputDTO.getProductId() == null && feedbackInputDTO.getDesignerId() == null) {
-            throw new BadRequestException("Either productId or designerId must be provided");
-        }
-
-        if (feedbackInputDTO.getProductId() != null) {
-            if (!productRepository.existsById(feedbackInputDTO.getProductId())) {
-                throw new BadRequestException("Product with ID " + feedbackInputDTO.getProductId() + " not found");
-            }
-        }
-
-        if (feedbackInputDTO.getDesignerId() != null) {
-            if (!designerRepository.existsById(feedbackInputDTO.getDesignerId())) {
-                throw new BadRequestException("Designer with ID " + feedbackInputDTO.getDesignerId() + " not found");
-            }
-        }
     }
 }

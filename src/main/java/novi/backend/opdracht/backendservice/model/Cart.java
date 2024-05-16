@@ -42,4 +42,23 @@ public class Cart {
     public void setItems(List<CartItem> items) {
         this.items = items;
     }
+
+    public void addItem(CartItem cartItem) {
+        this.items.add(cartItem);
+    }
+
+    public void removeItem(Long productId) {
+        this.items.removeIf(item -> item.getProduct().getProductId().equals(productId));
+    }
+
+    public boolean hasProduct(Long productId) {
+        return this.items.stream().anyMatch(item -> item.getProduct().getProductId().equals(productId));
+    }
+
+    public CartItem getItemByProductId(Long productId) {
+        return this.items.stream()
+                .filter(item -> item.getProduct().getProductId().equals(productId))
+                .findFirst()
+                .orElse(null);
+    }
 }

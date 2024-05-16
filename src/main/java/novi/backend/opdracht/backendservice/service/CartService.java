@@ -1,38 +1,33 @@
 package novi.backend.opdracht.backendservice.service;
 
-
-
 import novi.backend.opdracht.backendservice.dto.input.CartItemInputDTO;
 import novi.backend.opdracht.backendservice.dto.output.CartOutputDTO;
 import novi.backend.opdracht.backendservice.dto.output.CartItemOutputDTO;
-
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.model.*;
 import novi.backend.opdracht.backendservice.repository.CartRepository;
-
 import novi.backend.opdracht.backendservice.repository.ProductRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-
 import java.util.List;
-import java.util.Optional;
-
 import java.util.stream.Collectors;
 
 @Service
 public class CartService {
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
+    private final AuthenticationService authenticationService;
 
-    public CartService(CartRepository cartRepository, ProductRepository productRepository) {
+    public CartService(CartRepository cartRepository, ProductRepository productRepository, AuthenticationService authenticationService) {
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
+        this.authenticationService = authenticationService;
     }
 
-    public Cart getUserCart(String username) {
+    public Cart getUserCart() {
+        String username = authenticationService.getCurrentUsername();
         return cartRepository.findByUserUsername(username)
-                .orElseThrow(() -> new BadRequestException("Cart not found"));
+                .orElseThrow(() -> new BadRequestException("Winkelwagen niet gevonden"));
     }
 
     public void saveCart(Cart cart) {
@@ -40,51 +35,43 @@ public class CartService {
     }
 
     public void addToCart(CartItemInputDTO cartItemInputDTO) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Cart cart = cartRepository.findByUserUsername(username)
+        User user = authenticationService.getCurrentUser();
+        Cart cart = cartRepository.findByUserUsername(user.getUsername())
                 .orElseGet(() -> {
                     Cart newCart = new Cart();
-                    User user = new User();
-                    user.setUsername(username);
                     newCart.setUser(user);
                     return cartRepository.save(newCart);
                 });
         AbstractProduct product = productRepository.findById(cartItemInputDTO.getProductId())
-                .orElseThrow(() -> new BadRequestException("Product not found"));
+                .orElseThrow(() -> new BadRequestException("Product niet gevonden"));
         if (cartItemInputDTO.getQuantity() > product.getInventoryCount()) {
-            throw new BadRequestException("Requested quantity exceeds available inventory count");
+            throw new BadRequestException("Gevraagde hoeveelheid overschrijdt beschikbare voorraad");
         }
-        if (cart.getItems().stream().anyMatch(item -> item.getProduct().getProductId().equals(cartItemInputDTO.getProductId()))) {
-            throw new BadRequestException("Product already exists in the cart");
+        if (cart.hasProduct(cartItemInputDTO.getProductId())) {
+            throw new BadRequestException("Product bestaat al in de winkelwagen");
         }
-        CartItem cartItem = new CartItem();
-        cartItem.setProduct(product);
-        cartItem.setQuantity(cartItemInputDTO.getQuantity());
-        cartItem.setCart(cart);
-        cart.getItems().add(cartItem);
+        CartItem cartItem = new CartItem(cart, product, cartItemInputDTO.getQuantity());
+        cart.addItem(cartItem);
         cartRepository.save(cart);
     }
 
     public void removeFromCart(CartItemInputDTO cartItemInputDTO) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Cart cart = cartRepository.findByUserUsername(username)
-                .orElseThrow(() -> new BadRequestException("Cart not found"));
+        User user = authenticationService.getCurrentUser();
+        Cart cart = cartRepository.findByUserUsername(user.getUsername())
+                .orElseThrow(() -> new BadRequestException("Winkelwagen niet gevonden"));
         AbstractProduct product = productRepository.findById(cartItemInputDTO.getProductId())
-                .orElseThrow(() -> new BadRequestException("Product not found"));
-        boolean isProductInCart = cart.getItems().stream()
-                .anyMatch(item -> item.getProduct().getProductId().equals(cartItemInputDTO.getProductId()));
-
-        if (!isProductInCart) {
-            throw new BadRequestException("Product does not exist in the cart");
+                .orElseThrow(() -> new BadRequestException("Product niet gevonden"));
+        if (!cart.hasProduct(cartItemInputDTO.getProductId())) {
+            throw new BadRequestException("Product bestaat niet in de winkelwagen");
         }
-        cart.getItems().removeIf(item -> item.getProduct().getProductId().equals(cartItemInputDTO.getProductId()));
+        cart.removeItem(cartItemInputDTO.getProductId());
         cartRepository.save(cart);
     }
 
     public CartOutputDTO getCartContents() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Cart cart = cartRepository.findByUserUsername(username)
-                .orElseThrow(() -> new BadRequestException("Cart not found"));
+        User user = authenticationService.getCurrentUser();
+        Cart cart = cartRepository.findByUserUsername(user.getUsername())
+                .orElseThrow(() -> new BadRequestException("Winkelwagen niet gevonden"));
         CartOutputDTO cartOutputDTO = new CartOutputDTO();
         cartOutputDTO.setCartId(cart.getCartId());
         cartOutputDTO.setUsername(cart.getUser().getUsername());
@@ -109,31 +96,28 @@ public class CartService {
         return cartOutputDTO;
     }
 
-public String getProductNameById(Long productId) {
-    AbstractProduct product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("Product not found"));
-    return product.getProductName();
-}
-
+    public String getProductNameById(Long productId) {
+        AbstractProduct product = productRepository.findById(productId)
+                .orElseThrow(() -> new BadRequestException("Product niet gevonden"));
+        return product.getProductName();
+    }
 
     public void updateCartItemQuantity(CartItemInputDTO cartItemInputDTO) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Cart cart = cartRepository.findByUserUsername(username)
-                .orElseThrow(() -> new BadRequestException("Cart not found"));
-        Optional<CartItem> optionalCartItem = cart.getItems().stream()
-                .filter(item -> item.getProduct().getProductId().equals(cartItemInputDTO.getProductId()))
-                .findFirst();
+        User user = authenticationService.getCurrentUser();
+        Cart cart = cartRepository.findByUserUsername(user.getUsername())
+                .orElseThrow(() -> new BadRequestException("Winkelwagen niet gevonden"));
+        CartItem cartItem = cart.getItemByProductId(cartItemInputDTO.getProductId());
 
-        if (optionalCartItem.isPresent()) {
-            CartItem cartItem = optionalCartItem.get();
-            int newQuantity = cartItemInputDTO.getQuantity();
-            if (newQuantity > cartItem.getProduct().getInventoryCount()) {
-                throw new BadRequestException("Requested quantity exceeds available inventory count");
-            }
-            cartItem.setQuantity(newQuantity);
-            cartRepository.save(cart);
-        } else {
-            throw new BadRequestException("Product not found in the cart");
+        if (cartItem == null) {
+            throw new BadRequestException("Product niet gevonden in de winkelwagen");
         }
+
+        int newQuantity = cartItemInputDTO.getQuantity();
+        if (newQuantity > cartItem.getProduct().getInventoryCount()) {
+            throw new BadRequestException("Gevraagde hoeveelheid overschrijdt beschikbare voorraad");
+        }
+
+        cartItem.setQuantity(newQuantity);
+        cartRepository.save(cart);
     }
 }

@@ -6,7 +6,9 @@ import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDTO;
 import novi.backend.opdracht.backendservice.dto.output.ProductOutputDTO;
 import novi.backend.opdracht.backendservice.service.FeedbackService;
 import novi.backend.opdracht.backendservice.service.ProductService;
+import novi.backend.opdracht.backendservice.service.ValidationService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -20,10 +22,12 @@ public class ProductController {
 
     private final ProductService productService;
     private final FeedbackService feedbackService;
+    private final ValidationService validationService;
 
-    public ProductController(ProductService productService, FeedbackService feedbackService) {
+    public ProductController(ProductService productService, FeedbackService feedbackService, ValidationService validationService) {
         this.productService = productService;
         this.feedbackService = feedbackService;
+        this.validationService = validationService;
     }
 
     @GetMapping
@@ -53,18 +57,26 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductOutputDTO> createProduct(@RequestBody @Valid ProductInputDTO productInputDTO) {
+    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductInputDTO productInputDTO, BindingResult result) {
+        if (result.hasFieldErrors()) {
+            String errorMessage = validationService.formatFieldErrors(result);
+            return ResponseEntity.badRequest().body(errorMessage);
+        }
         ProductOutputDTO createdProduct = productService.createProduct(productInputDTO);
-        URI locatie = ServletUriComponentsBuilder.fromCurrentRequest()
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdProduct.getProductId())
                 .toUri();
-        return ResponseEntity.created(locatie).body(createdProduct);
+        return ResponseEntity.created(location).body(createdProduct);
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<ProductOutputDTO> updateProduct(@PathVariable Long productId,
-                                                          @RequestBody @Valid ProductInputDTO productInputDTO) {
+    public ResponseEntity<?> updateProduct(@PathVariable Long productId,
+                                           @RequestBody @Valid ProductInputDTO productInputDTO, BindingResult result) {
+        if (result.hasFieldErrors()) {
+            String errorMessage = validationService.formatFieldErrors(result);
+            return ResponseEntity.badRequest().body(errorMessage);
+        }
         ProductOutputDTO updatedProduct = productService.updateProduct(productId, productInputDTO);
         return ResponseEntity.ok(updatedProduct);
     }

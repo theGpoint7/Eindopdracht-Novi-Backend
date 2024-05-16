@@ -5,7 +5,8 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 
 public class DesignerRequestDto {
-    @NotBlank(message = "KVK Number is required")
+    @NotBlank(message = "KVK nummer is verplicht")
+    @Size(min = 8, max = 16, message = "KVK nummer moet tussen de 8 en 16 tekens bevatten.")
     private String kvkNumber;
 
     public String getKvkNumber() {
