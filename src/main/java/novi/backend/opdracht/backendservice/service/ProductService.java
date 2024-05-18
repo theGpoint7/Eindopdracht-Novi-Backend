@@ -1,9 +1,11 @@
 package novi.backend.opdracht.backendservice.service;
 
 import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
 import novi.backend.opdracht.backendservice.dto.output.ProductOutputDTO;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.exception.ProductNameTooLongException;
+import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.model.*;
 import novi.backend.opdracht.backendservice.repository.DesignerRepository;
 import novi.backend.opdracht.backendservice.repository.ProductRepository;
@@ -27,7 +29,7 @@ public class ProductService {
 
     public ProductOutputDTO getProductById(Long productId) {
         AbstractProduct product = productRepository.findById(productId)
-                .orElseThrow(() -> new BadRequestException("Product niet gevonden"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product niet gevonden"));
         return toProductOutputDTO(product);
     }
 
@@ -40,28 +42,32 @@ public class ProductService {
             throw new BadRequestException("U kunt dit product niet maken, de naam bestaat al.");
         }
 
+        if (productInputDTO.getProductType() == null || productInputDTO.getProductType().isEmpty()) {
+            throw new BadRequestException("Producttype mag niet leeg zijn.");
+        }
+
         AbstractProduct product;
         switch (productInputDTO.getProductType()) {
             case "Clothing":
                 Clothing clothing = new Clothing();
-                clothing.updateSpecificFields(productInputDTO);
+                clothing.insertSpecificFields(productInputDTO);
                 product = clothing;
                 break;
             case "Accessory":
                 Accessory accessory = new Accessory();
-                accessory.updateSpecificFields(productInputDTO);
+                accessory.insertSpecificFields(productInputDTO);
                 product = accessory;
                 break;
             case "Footwear":
                 Footwear footwear = new Footwear();
-                footwear.updateSpecificFields(productInputDTO);
+                footwear.insertSpecificFields(productInputDTO);
                 product = footwear;
                 break;
             default:
                 throw new BadRequestException("Ongeldig producttype: " + productInputDTO.getProductType());
         }
 
-        product.updateCommonFields(productInputDTO);
+        product.insertCommonFields(productInputDTO);
         product.setDesigner(designer);
 
         product = productRepository.save(product);
@@ -69,36 +75,37 @@ public class ProductService {
         return toProductOutputDTO(product);
     }
 
-    public ProductOutputDTO updateProduct(Long productId, ProductInputDTO productInputDTO) {
+    public ProductOutputDTO updateProduct(Long productId, ProductUpdateDTO productUpdateDTO) {
         User user = authenticationService.getCurrentUser();
 
         Designer designer = designerRepository.findByUserUsername(user.getUsername())
                 .orElseThrow(() -> new RuntimeException("Ontwerper niet gevonden voor gebruikersnaam: " + user.getUsername()));
 
         AbstractProduct product = productRepository.findById(productId)
-                .orElseThrow(() -> new BadRequestException("Product niet gevonden"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product niet gevonden"));
 
         if (!product.getDesigner().equals(designer)) {
             throw new BadRequestException("U bent niet gemachtigd om dit product bij te werken");
         }
 
-        if (!product.getProductName().equals(productInputDTO.getProductName()) && productNameExists(productInputDTO.getProductName())) {
+        if (!product.getProductName().equals(productUpdateDTO.getProductName()) && productNameExists(productUpdateDTO.getProductName())) {
             throw new ProductNameTooLongException("Productnaam bestaat al");
         }
 
-        product.updateCommonFields(productInputDTO);
+        product.updateCommonFields(productUpdateDTO);
 
         if (product instanceof Clothing) {
-            ((Clothing) product).updateSpecificFields(productInputDTO);
+            ((Clothing) product).updateSpecificFields(productUpdateDTO);
         } else if (product instanceof Accessory) {
-            ((Accessory) product).updateSpecificFields(productInputDTO);
+            ((Accessory) product).updateSpecificFields(productUpdateDTO);
         } else if (product instanceof Footwear) {
-            ((Footwear) product).updateSpecificFields(productInputDTO);
+            ((Footwear) product).updateSpecificFields(productUpdateDTO);
         }
 
         product = productRepository.save(product);
         return toProductOutputDTO(product);
     }
+
 
     public List<ProductOutputDTO> findAllProducts(Integer footwearSize, String clothingSize, String color, String storeName) {
         List<AbstractProduct> products;
@@ -128,11 +135,15 @@ public class ProductService {
         }
 
         return products.stream()
-                .map(this::toProductOutputDTOWithDesigner)
+                .map(this::toProductOutputDTO)
                 .collect(Collectors.toList());
     }
 
-    private ProductOutputDTO toProductOutputDTO(AbstractProduct product) {
+    public boolean productNameExists(String productName) {
+        return productRepository.existsByProductName(productName);
+    }
+
+    ProductOutputDTO toProductOutputDTO(AbstractProduct product) {
         ProductOutputDTO dto = new ProductOutputDTO();
         dto.setProductId(product.getProductId());
         dto.setProductName(product.getProductName());
@@ -170,30 +181,6 @@ public class ProductService {
             promotionDTO.setPromotionEndDateTime(product.getPromotion().getPromotionEndDateTime());
             dto.setPromotion(promotionDTO);
         }
-        return dto;
-    }
-
-    public boolean productNameExists(String productName) {
-        return productRepository.existsByProductName(productName);
-    }
-
-    private ProductOutputDTO toProductOutputDTOWithDesigner(AbstractProduct product) {
-        ProductOutputDTO dto = toProductOutputDTO(product);
-
-        if (product.getDesigner() != null) {
-            ProductOutputDTO.DesignerInfo designerDTO = new ProductOutputDTO.DesignerInfo();
-            designerDTO.setDesignerId(product.getDesigner().getDesignerId());
-            designerDTO.setStoreName(product.getDesigner().getStoreName());
-            dto.setDesigner(designerDTO);
-        }
-
-        if (product.getPromotion() != null) {
-            ProductOutputDTO.PromotionInfo promotionDTO = new ProductOutputDTO.PromotionInfo();
-            promotionDTO.setPromotionId(product.getPromotion().getPromotionId());
-            promotionDTO.setPromotionDetails(product.getPromotion().getPromotionDescription());
-            dto.setPromotion(promotionDTO);
-        }
-
         return dto;
     }
 }

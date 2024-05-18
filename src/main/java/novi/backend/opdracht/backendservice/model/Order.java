@@ -153,9 +153,11 @@ public class Order {
     }
 
     public double calculateTotalAmount() {
-        return orderLines.stream()
-                .mapToDouble(OrderLine::calculateTotalPrice)
+        double totalAmount = orderLines.stream()
+                .mapToDouble(orderLine -> orderLine.getPrice() * orderLine.getQuantity())
                 .sum();
+        double totalDiscount = calculateTotalDiscount();
+        return totalAmount - totalDiscount;
     }
 
     public void addOrderLine(OrderLine orderLine) {

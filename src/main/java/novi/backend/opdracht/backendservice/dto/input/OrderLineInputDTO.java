@@ -10,6 +10,10 @@ public class OrderLineInputDTO {
     @Min(value = 1, message = "Minimale hoeveelheid is 1.")
     private int quantity;
 
+    public OrderLineInputDTO() {
+
+    }
+
     public Long getProductId() {
         return productId;
     }

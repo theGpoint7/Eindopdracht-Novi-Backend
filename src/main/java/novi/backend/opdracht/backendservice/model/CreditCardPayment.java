@@ -40,4 +40,9 @@ public class CreditCardPayment extends AbstractPaymentMethod {
                 this.expiryDate.equals(requestDTO.getExpiryDate()) &&
                 this.cvv.equals(requestDTO.getCvv());
     }
+
+    @Override
+    public String getPaymentMethodType() {
+        return "CREDIT_CARD";
+    }
 }

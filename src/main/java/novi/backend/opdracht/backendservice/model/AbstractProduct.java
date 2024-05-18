@@ -2,6 +2,7 @@ package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
 import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -120,7 +121,7 @@ public abstract class AbstractProduct {
         this.promotion = promotion;
     }
 
-    public void updateCommonFields(ProductInputDTO productInputDTO) {
+    public void insertCommonFields(ProductInputDTO productInputDTO) {
         this.productName = productInputDTO.getProductName();
         this.productType = productInputDTO.getProductType();
         this.price = productInputDTO.getPrice();
@@ -129,4 +130,14 @@ public abstract class AbstractProduct {
         this.productDescription = productInputDTO.getProductDescription();
         this.material = productInputDTO.getMaterial();
     }
+
+    public void updateCommonFields(ProductUpdateDTO productUpdateDTO) {
+        this.productName = productUpdateDTO.getProductName();
+        this.price = productUpdateDTO.getPrice();
+        this.inventoryCount = productUpdateDTO.getInventoryCount();
+        this.imageUrl = productUpdateDTO.getImageUrl();
+        this.productDescription = productUpdateDTO.getProductDescription();
+        this.material = productUpdateDTO.getMaterial();
+    }
+
 }

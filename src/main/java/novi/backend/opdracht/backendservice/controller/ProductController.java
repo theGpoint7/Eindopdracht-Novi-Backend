@@ -2,6 +2,7 @@ package novi.backend.opdracht.backendservice.controller;
 
 import jakarta.validation.Valid;
 import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
 import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDTO;
 import novi.backend.opdracht.backendservice.dto.output.ProductOutputDTO;
 import novi.backend.opdracht.backendservice.service.FeedbackService;
@@ -72,12 +73,12 @@ public class ProductController {
 
     @PutMapping("/{productId}")
     public ResponseEntity<?> updateProduct(@PathVariable Long productId,
-                                           @RequestBody @Valid ProductInputDTO productInputDTO, BindingResult result) {
+                                           @RequestBody @Valid ProductUpdateDTO productUpdateDTO, BindingResult result) {
         if (result.hasFieldErrors()) {
             String errorMessage = validationService.formatFieldErrors(result);
             return ResponseEntity.badRequest().body(errorMessage);
         }
-        ProductOutputDTO updatedProduct = productService.updateProduct(productId, productInputDTO);
+        ProductOutputDTO updatedProduct = productService.updateProduct(productId, productUpdateDTO);
         return ResponseEntity.ok(updatedProduct);
     }
 }

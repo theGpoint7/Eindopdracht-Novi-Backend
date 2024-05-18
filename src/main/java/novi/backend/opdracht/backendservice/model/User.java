@@ -168,6 +168,10 @@ public class User {
         this.authorities.remove(authority);
     }
 
+    public void setAuthorities(Set<Authority> authorities) {
+        this.authorities = authorities;
+    }
+
     public Cart getCart() {
         return cart;
     }

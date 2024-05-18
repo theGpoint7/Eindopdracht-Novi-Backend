@@ -27,7 +27,7 @@ public abstract class AbstractPaymentMethod {
     @Column
     private LocalDateTime paymentCompletionDateTime;
 
-    // Getters and Setters
+
 
     public Long getPaymentMethodId() {
         return paymentMethodId;
@@ -73,9 +73,7 @@ public abstract class AbstractPaymentMethod {
         this.paymentCompletionDateTime = LocalDateTime.now();
     }
 
-    public String getPaymentMethodType() {
-        return this.getClass().getAnnotation(DiscriminatorValue.class).value();
-    }
+    public abstract String getPaymentMethodType();
 
     public boolean matchesPaymentDetails(PaymentConfirmationRequestDTO requestDTO) {
         return false;

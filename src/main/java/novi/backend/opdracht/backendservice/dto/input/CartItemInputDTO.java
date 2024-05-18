@@ -14,6 +14,10 @@ public class CartItemInputDTO {
         this.quantity = quantity;
     }
 
+    public CartItemInputDTO() {
+
+    }
+
     public Long getProductId() {
         return productId;
     }
