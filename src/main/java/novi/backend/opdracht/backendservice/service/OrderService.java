@@ -13,11 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,7 +39,7 @@ public class OrderService {
         }
 
         List<CartItemInputDTO> cartItems;
-        if (orderRequest.getCartItems() == null) {
+        if (orderRequest.isRetrieveCartItems()) {
             cartItems = cart.getItems().stream()
                     .map(cartItem -> new CartItemInputDTO(cartItem.getProduct().getProductId(), cartItem.getQuantity()))
                     .collect(Collectors.toList());
@@ -58,32 +55,29 @@ public class OrderService {
         order.setPaymentStatus(PaymentStatus.PENDING);
 
         double totalPrice = 0.0;
-        Set<OrderLine> orderLines = new HashSet<>();
         Long commonDesignerId = null;
         for (CartItemInputDTO cartItem : cartItems) {
             AbstractProduct product = getProductById(cartItem.getProductId());
-            if (product != null) {
-                if (product.getInventoryCount() < cartItem.getQuantity()) {
-                    throw new BadRequestException("Onvoldoende voorraad voor product: " + product.getProductName());
-                }
-                product.setInventoryCount(product.getInventoryCount() - cartItem.getQuantity());
-                productRepository.save(product);
+            if (product.getInventoryCount() < cartItem.getQuantity()) {
+                throw new BadRequestException("Onvoldoende voorraad voor product: " + product.getProductName());
+            }
+            product.setInventoryCount(product.getInventoryCount() - cartItem.getQuantity());
+            productRepository.save(product);
 
-                double discountAmount = calculateDiscountAmount(product, cartItem.getQuantity());
-                double productPrice = (product.getPrice() - discountAmount) * cartItem.getQuantity();
-                totalPrice += productPrice;
+            double discountAmount = calculateDiscountAmount(product, cartItem.getQuantity());
+            double productPrice = (product.getPrice() - discountAmount) * cartItem.getQuantity();
+            totalPrice += productPrice;
 
-                Long designerId = product.getDesigner().getDesignerId();
+            Long designerId = product.getDesigner().getDesignerId();
 
-                OrderLine orderLine = new OrderLine(order, product, cartItem.getQuantity(), productPrice, discountAmount);
-                order.addOrderLine(orderLine);
+            OrderLine orderLine = new OrderLine(order, product, cartItem.getQuantity(), productPrice, discountAmount);
+            order.addOrderLine(orderLine);
 
-                if (commonDesignerId == null) {
-                    commonDesignerId = designerId;
-                } else {
-                    if (!designerId.equals(commonDesignerId)) {
-                        throw new BadRequestException("Alle producten in de bestelling moeten van dezelfde ontwerper zijn");
-                    }
+            if (commonDesignerId == null) {
+                commonDesignerId = designerId;
+            } else {
+                if (!designerId.equals(commonDesignerId)) {
+                    throw new BadRequestException("Alle producten in de bestelling moeten van dezelfde ontwerper zijn");
                 }
             }
         }
@@ -96,7 +90,68 @@ public class OrderService {
         cartService.saveCart(cart);
     }
 
-    private double calculateDiscountAmount(AbstractProduct product, int quantity) {
+//    public void placeOrder(OrderRequestDTO orderRequest) {
+//        User user = authenticationService.getCurrentUser();
+//        Cart cart = cartService.getUserCart();
+//        if (cart.getItems().isEmpty()) {
+//            throw new BadRequestException("Kan geen bestelling plaatsen met een lege winkelwagen");
+//        }
+//
+//        List<CartItemInputDTO> cartItems;
+//        if (orderRequest.getCartItems() == null) {
+//            cartItems = cart.getItems().stream()
+//                    .map(cartItem -> new CartItemInputDTO(cartItem.getProduct().getProductId(), cartItem.getQuantity()))
+//                    .collect(Collectors.toList());
+//        } else {
+//            cartItems = orderRequest.getCartItems();
+//        }
+//
+//        Order order = new Order();
+//        order.setUser(user);
+//        order.setOrderDateTime(LocalDateTime.now());
+//        order.setShippingAddress(user.getAddress());
+//        order.setOrderStatus(OrderStatus.PENDING);
+//        order.setPaymentStatus(PaymentStatus.PENDING);
+//
+//        double totalPrice = 0.0;
+//        Long commonDesignerId = null;
+//        for (CartItemInputDTO cartItem : cartItems) {
+//            AbstractProduct product = getProductById(cartItem.getProductId());
+//            if (product != null) {
+//                if (product.getInventoryCount() < cartItem.getQuantity()) {
+//                    throw new BadRequestException("Onvoldoende voorraad voor product: " + product.getProductName());
+//                }
+//                product.setInventoryCount(product.getInventoryCount() - cartItem.getQuantity());
+//                productRepository.save(product);
+//
+//                double discountAmount = calculateDiscountAmount(product, cartItem.getQuantity());
+//                double productPrice = (product.getPrice() - discountAmount) * cartItem.getQuantity();
+//                totalPrice += productPrice;
+//
+//                Long designerId = product.getDesigner().getDesignerId();
+//
+//                OrderLine orderLine = new OrderLine(order, product, cartItem.getQuantity(), productPrice, discountAmount);
+//                order.addOrderLine(orderLine);
+//
+//                if (commonDesignerId == null) {
+//                    commonDesignerId = designerId;
+//                } else {
+//                    if (!designerId.equals(commonDesignerId)) {
+//                        throw new BadRequestException("Alle producten in de bestelling moeten van dezelfde ontwerper zijn");
+//                    }
+//                }
+//            }
+//        }
+//        order.setAmount(totalPrice);
+//        order.setDesignerId(commonDesignerId);
+//
+//        orderRepository.save(order);
+//
+//        cart.getItems().clear();
+//        cartService.saveCart(cart);
+//    }
+
+    public double calculateDiscountAmount(AbstractProduct product, int quantity) {
         Promotion promotion = product.getPromotion();
         if (promotion != null) {
             double discountPercentage = promotion.getPromotionPercentage() / 100.0;
@@ -134,7 +189,7 @@ public class OrderService {
     public void cancelOrder(Long orderId) {
         User user = authenticationService.getCurrentUser();
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BadRequestException("Bestelling niet gevonden"));
+                .orElseThrow(() -> new ResourceNotFoundException("Bestelling niet gevonden"));
 
         if (!order.isOwnedBy(user.getUsername())) {
             throw new AuthorizationServiceException("Je bent niet gemachtigd om deze bestelling te annuleren");
@@ -181,11 +236,7 @@ public class OrderService {
         }
     }
 
-    public Receipt getReceipt(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Bestelling niet gevonden"));
-        return generateReceipt(order);
-    }
+
 
     public ReceiptOutputDTO getReceiptForOrder(Long orderId) {
         User user = authenticationService.getCurrentUser();
@@ -242,14 +293,5 @@ public class OrderService {
         receipt.setShippingCost(shippingCost);
 
         return receipt;
-    }
-
-    public double getTotalSalesByDesignerId(Long designerId) {
-        List<Order> designerOrders = orderRepository.findAllByDesignerId(designerId);
-
-        return designerOrders.stream()
-                .filter(order -> order.getOrderStatus() == OrderStatus.SHIPPED)
-                .mapToDouble(Order::getAmount)
-                .sum();
     }
 }

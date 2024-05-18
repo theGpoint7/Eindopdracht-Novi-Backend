@@ -32,4 +32,8 @@ public class BankTransferPayment extends AbstractPaymentMethod {
         return this.accountNumber.equals(requestDTO.getAccountNumber()) &&
                 this.bankCode.equals(requestDTO.getBankCode());
     }
+    @Override
+    public String getPaymentMethodType() {
+        return "BANK_TRANSFER";
+    }
 }

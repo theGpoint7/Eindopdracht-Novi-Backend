@@ -64,9 +64,15 @@ public class ExceptionController {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
+        logger.error("IllegalStateException: ", ex);
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage(), "Conflict"), HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
-        logger.error("General exception: {}", ex.getMessage());
+        logger.error("General exception: ", ex);
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage(), "Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

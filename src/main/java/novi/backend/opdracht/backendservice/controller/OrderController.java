@@ -70,8 +70,18 @@ public class OrderController {
 
     @PutMapping("/{orderId}/confirm-shipment")
     public ResponseEntity<String> confirmShipment(@PathVariable Long orderId) {
-        ResponseEntity<String> response = orderService.confirmShipment(orderId);
-        return response;
+        try {
+            ResponseEntity<String> response = orderService.confirmShipment(orderId);
+            return response;
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bestelling niet gevonden");
+        } catch (AuthorizationServiceException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Je bent niet gemachtigd om deze bestelling te bevestigen");
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Bestelling is al verzonden of betaling is niet bevestigd");
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Er is een fout opgetreden bij het bevestigen van de verzending.");
+        }
     }
 
     @GetMapping("/{orderId}/receipt")

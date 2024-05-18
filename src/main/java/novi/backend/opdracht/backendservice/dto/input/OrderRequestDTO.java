@@ -1,9 +1,16 @@
 package novi.backend.opdracht.backendservice.dto.input;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.util.List;
 
 public class OrderRequestDTO {
+
+    @NotNull(message = "retrieveCartItems mag niet null zijn")
     private boolean retrieveCartItems;
+
+    @Size(min = 1, message = "winkelwagen mag niet leeg zijn")
     private List<CartItemInputDTO> cartItems;
 
     public OrderRequestDTO() {

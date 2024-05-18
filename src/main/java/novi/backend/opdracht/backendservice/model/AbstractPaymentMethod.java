@@ -73,9 +73,7 @@ public abstract class AbstractPaymentMethod {
         this.paymentCompletionDateTime = LocalDateTime.now();
     }
 
-    public String getPaymentMethodType() {
-        return this.getClass().getAnnotation(DiscriminatorValue.class).value();
-    }
+    public abstract String getPaymentMethodType();
 
     public boolean matchesPaymentDetails(PaymentConfirmationRequestDTO requestDTO) {
         return false;

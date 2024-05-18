@@ -30,4 +30,8 @@ public class PayPalPayment extends AbstractPaymentMethod {
         return this.email.equals(requestDTO.getEmail()) &&
                 this.password.equals(requestDTO.getPassword());
     }
+    @Override
+    public String getPaymentMethodType() {
+        return "PAYPAL";
+    }
 }
