@@ -150,7 +150,7 @@ class ProductControllerIntegrationTest {
         ObjectMapper objectMapper = new ObjectMapper();
         ProductOutputDTO createdProduct = objectMapper.readValue(responseJson, ProductOutputDTO.class);
 
-        assertEquals("New Product", createdProduct.getProductName());
+        assertEquals("Nieuw Product", createdProduct.getProductName());
     }
 
     @WithMockUser(username = "testuser", roles = "DESIGNER")
@@ -236,7 +236,7 @@ class ProductControllerIntegrationTest {
     void testCreateProduct_LongName() throws Exception {
         String productInputJson = """
         {
-            "productName": "This is a very long product name that exceeds the normal limit of 255 characters, so it should fail the validation check if the system is working correctly. This is a very long product name that exceeds the normal limit of 255 characters, so it should fail the validation check if the system is working correctly.",
+            "productName": "oudmpjeqblfmlyngchhwzxgsltbezifsdxiqovdglecewlbhtigihedmhwvkgioaclmmzwliseafoludtqmamhopciybwgwvdjxuinrtziwblrnlioejlcurzzounrqnyvhzkltmimnicsoudmpjeqblfmlyngchhwzxgsltbezifsdxiqovdglecewlbhtigihedmhwvkgioaclmmzwliseafoludtqmamhopciybwgwvdjxuinrtziwblrnlioejlcurzzounrqnyvhzkltmimnicsoudmpjeqblfmlyngchhwzxgsltbezifsdxiqovdglecewlbhtigihedmhwvkgioaclmmzwliseafoludtqmamhopciybwgwvdjxuinrtziwblrnlioejlcurzzounrqnyvhzkltmimnicsoudmpjeqblfmlyngchhwzxgsltbezifsdxiqovdglecewlbhtigihedmhwvkgioaclmmzwliseafoludtqmamhopciybwgwvdjxuinrtziwblrnlioejlcurzzounrqnyvhzkltmimnicsoudmpjeqblfmlyngchhwzxgsltbezifsdxiqovdglecewlbhtigihedmhwvkgioaclmmzwliseafoludtqmamhopciybwgwvdjxuinrtziwblrnlioejlcurzzounrqnyvhzkltmimnicsoudmpjeqblfmlyngchhwzxgsltbezifsdxiqovdglecewlbhtigihedmhwvkgioaclmmzwliseafoludtqmamhopciybwgwvdjxuinrtziwblrnlioejlcurzzounrqnyvhzkltmimnicsoudmpjeqblfmlyngchhwzxgsltbezifsdxiqovdglecewlbhtigihedmhwvkgioaclmmzwliseafoludtqmamhopciybwgwvdjxuinrtziwblrnlioejlcurzzounrqnyvhzkltmimnicsoudmpjeqblfmlyngchhwzxgsltbezifsdxiqovdglecewlbhtigihedmhwvkgioaclmmzwliseafoludtqmamhopciybwgwvdjxuinrtziwblrnlioejlcurzzounrqnyvhzkltmimnicsoudmpjeqblfmlyngchhwzxgsltbezifsdxiqovdglecewlbhtigihedmhwvkgioaclmmzwliseafoludtqmamhopciybwgwvdjxuinrtziwblrnlioejlcurzzounrqnyvhzkltmimnics",
             "productType": "Clothing",
             "price": 10.0,
             "inventoryCount": 100
@@ -256,7 +256,7 @@ class ProductControllerIntegrationTest {
     void testCreateProduct_HighPrice() throws Exception {
         String productInputJson = """
         {
-            "productName": "duur Product",
+            "productName": "Duur Product",
             "productType": "Clothing",
             "price": 1000000.0,
             "inventoryCount": 100
@@ -268,7 +268,7 @@ class ProductControllerIntegrationTest {
                         .content(productInputJson))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.productName", is("Expensive Product")))
+                .andExpect(jsonPath("$.productName", is("Duur Product")))
                 .andExpect(jsonPath("$.price", is(1000000.0)));
     }
 }

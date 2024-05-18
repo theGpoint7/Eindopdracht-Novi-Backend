@@ -64,7 +64,6 @@ public class AccessoryTest {
         });
     }
 
-    // Tests for inherited methods from AbstractProduct
     @Test
     public void testSetAndGetProductName() {
         String expectedProductName = "TestProduct";

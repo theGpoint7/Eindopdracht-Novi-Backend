@@ -29,14 +29,11 @@ class OrderRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Create and save the User entity
         user = new User();
         user.setUsername("testuser");
         user.setPassword("password");
         user.setEmail("test@example.com");
-        user = userRepository.save(user); // Save the user entity first
-
-        // Create Order entities and set the saved User entity
+        user = userRepository.save(user);
         order1 = new Order();
         order1.setUser(user);
         order1.setDesignerId(1L);
@@ -52,8 +49,6 @@ class OrderRepositoryTest {
         order2.setOrderDateTime(LocalDateTime.now());
         order2.setShippingAddress("456 Test Avenue");
         order2.setOrderStatus(OrderStatus.PENDING);
-
-        // Save Order entities
         orderRepository.save(order1);
         orderRepository.save(order2);
     }

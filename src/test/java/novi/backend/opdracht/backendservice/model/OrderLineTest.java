@@ -103,7 +103,7 @@ class OrderLineTest {
         promotion.setPromotionPercentage(10.0);
         product.setPromotion(promotion);
 
-        double expectedTotalPrice = 2 * 100.0 * 0.9; // 10% discount
+        double expectedTotalPrice = 2 * 100.0 * 0.9;
         double actualTotalPrice = orderLine.calculateTotalPrice();
         assertEquals(expectedTotalPrice, actualTotalPrice);
     }

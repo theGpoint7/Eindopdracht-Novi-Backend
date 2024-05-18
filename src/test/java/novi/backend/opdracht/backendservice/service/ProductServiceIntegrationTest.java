@@ -42,7 +42,6 @@ public class ProductServiceIntegrationTest {
 
     @BeforeEach
     public void setup() {
-        // Create and save a test user
         user = new User();
         user.setUsername("testuser");
         user.setPassword("securepassword");
@@ -52,8 +51,6 @@ public class ProductServiceIntegrationTest {
         user.setEnabledAccount(true);
         user.setAddress("123 Test Street");
         userRepository.save(user);
-
-        // Create and save a test designer
         designer = new Designer();
         designer.setUser(user);
         designer.setStoreName("Test Store");
@@ -83,7 +80,6 @@ public class ProductServiceIntegrationTest {
     @WithMockUser(username = "testuser", roles = "DESIGNER")
     public void testCreateProduct_ValidationErrors() {
         ProductInputDTO productInputDTO = new ProductInputDTO();
-        // Missing mandatory fields
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             productService.createProduct(productInputDTO);
@@ -185,7 +181,6 @@ public class ProductServiceIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testFindAllProducts() {
-        // Create and save products
         Clothing clothing1 = new Clothing();
         clothing1.setProductName("Product 1");
         clothing1.setProductType("Clothing");
@@ -207,22 +202,14 @@ public class ProductServiceIntegrationTest {
         clothing2.setColor("Blue");
         clothing2.setFit("Regular");
         productRepository.save(clothing2);
-
-        // Test without any filter
         List<ProductOutputDTO> allProducts = productService.findAllProducts(null, null, null, null);
         assertEquals(2, allProducts.size());
-
-        // Test with clothing size filter
         List<ProductOutputDTO> sizeMProducts = productService.findAllProducts(null, "M", null, null);
         assertEquals(1, sizeMProducts.size());
         assertEquals("Product 2", sizeMProducts.get(0).getProductName());
-
-        // Test with color filter
         List<ProductOutputDTO> blueProducts = productService.findAllProducts(null, null, "Blue", null);
         assertEquals(1, blueProducts.size());
         assertEquals("Product 2", blueProducts.get(0).getProductName());
-
-        // Test with store name filter
         List<ProductOutputDTO> storeProducts = productService.findAllProducts(null, null, null, "Test Store");
         assertEquals(2, storeProducts.size());
     }

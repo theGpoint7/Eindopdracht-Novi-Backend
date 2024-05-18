@@ -90,67 +90,6 @@ public class OrderService {
         cartService.saveCart(cart);
     }
 
-//    public void placeOrder(OrderRequestDTO orderRequest) {
-//        User user = authenticationService.getCurrentUser();
-//        Cart cart = cartService.getUserCart();
-//        if (cart.getItems().isEmpty()) {
-//            throw new BadRequestException("Kan geen bestelling plaatsen met een lege winkelwagen");
-//        }
-//
-//        List<CartItemInputDTO> cartItems;
-//        if (orderRequest.getCartItems() == null) {
-//            cartItems = cart.getItems().stream()
-//                    .map(cartItem -> new CartItemInputDTO(cartItem.getProduct().getProductId(), cartItem.getQuantity()))
-//                    .collect(Collectors.toList());
-//        } else {
-//            cartItems = orderRequest.getCartItems();
-//        }
-//
-//        Order order = new Order();
-//        order.setUser(user);
-//        order.setOrderDateTime(LocalDateTime.now());
-//        order.setShippingAddress(user.getAddress());
-//        order.setOrderStatus(OrderStatus.PENDING);
-//        order.setPaymentStatus(PaymentStatus.PENDING);
-//
-//        double totalPrice = 0.0;
-//        Long commonDesignerId = null;
-//        for (CartItemInputDTO cartItem : cartItems) {
-//            AbstractProduct product = getProductById(cartItem.getProductId());
-//            if (product != null) {
-//                if (product.getInventoryCount() < cartItem.getQuantity()) {
-//                    throw new BadRequestException("Onvoldoende voorraad voor product: " + product.getProductName());
-//                }
-//                product.setInventoryCount(product.getInventoryCount() - cartItem.getQuantity());
-//                productRepository.save(product);
-//
-//                double discountAmount = calculateDiscountAmount(product, cartItem.getQuantity());
-//                double productPrice = (product.getPrice() - discountAmount) * cartItem.getQuantity();
-//                totalPrice += productPrice;
-//
-//                Long designerId = product.getDesigner().getDesignerId();
-//
-//                OrderLine orderLine = new OrderLine(order, product, cartItem.getQuantity(), productPrice, discountAmount);
-//                order.addOrderLine(orderLine);
-//
-//                if (commonDesignerId == null) {
-//                    commonDesignerId = designerId;
-//                } else {
-//                    if (!designerId.equals(commonDesignerId)) {
-//                        throw new BadRequestException("Alle producten in de bestelling moeten van dezelfde ontwerper zijn");
-//                    }
-//                }
-//            }
-//        }
-//        order.setAmount(totalPrice);
-//        order.setDesignerId(commonDesignerId);
-//
-//        orderRepository.save(order);
-//
-//        cart.getItems().clear();
-//        cartService.saveCart(cart);
-//    }
-
     public double calculateDiscountAmount(AbstractProduct product, int quantity) {
         Promotion promotion = product.getPromotion();
         if (promotion != null) {
@@ -235,7 +174,6 @@ public class OrderService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Er is een fout opgetreden bij het bevestigen van de verzending.");
         }
     }
-
 
 
     public ReceiptOutputDTO getReceiptForOrder(Long orderId) {

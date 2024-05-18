@@ -27,7 +27,7 @@ public abstract class AbstractPaymentMethod {
     @Column
     private LocalDateTime paymentCompletionDateTime;
 
-    // Getters and Setters
+
 
     public Long getPaymentMethodId() {
         return paymentMethodId;

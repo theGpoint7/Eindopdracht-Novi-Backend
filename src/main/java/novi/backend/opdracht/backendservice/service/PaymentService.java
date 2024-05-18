@@ -102,7 +102,7 @@ public class PaymentService {
                 throw new BadRequestException("Ongeldig type betalingsmethode.");
         }
         paymentMethod.setOrder(order);
-//        paymentMethod.setPaymentMethodType(requestDTO.getPaymentMethodType());
+
         LocalDateTime paymentCreationDateTime = LocalDateTime.now();
         paymentMethod.setPaymentCreationDateTime(paymentCreationDateTime);
         LocalDateTime paymentMethodExpirationDateTime = paymentCreationDateTime.plusHours(24);

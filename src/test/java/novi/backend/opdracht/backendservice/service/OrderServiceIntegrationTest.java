@@ -50,7 +50,6 @@ public class OrderServiceIntegrationTest {
 
     @BeforeEach
     public void setup() {
-        // Create and save a test user
         User user = new User();
         user.setUsername("testuser");
         user.setPassword("securepassword");
@@ -66,13 +65,9 @@ public class OrderServiceIntegrationTest {
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testPlaceOrder_Success() {
         User user = userRepository.findByUsername("testuser").orElseThrow();
-
-        // Create and save the cart for the user
         Cart cart = new Cart();
         cart.setUser(user);
         cartRepository.save(cart);
-
-        // Create and save a product to be added to the cart
         Clothing product = new Clothing();
         product.setProductName("Test Product");
         product.setProductType("Clothing");
@@ -80,23 +75,15 @@ public class OrderServiceIntegrationTest {
         product.setInventoryCount(10);
         product.setDesigner(designerRepository.findById(1L).orElseThrow());
         productRepository.save(product);
-
-        // Add the product to the cart
         CartItem cartItem = new CartItem();
         cartItem.setCart(cart);
         cartItem.setProduct(product);
         cartItem.setQuantity(2);
         cart.getItems().add(cartItem);
         cartRepository.save(cart);
-
-        // Create an order request
         OrderRequestDTO orderRequest = new OrderRequestDTO();
         orderRequest.setRetrieveCartItems(true);
-
-        // Place the order
         orderService.placeOrder(orderRequest);
-
-        // Verify the order is saved
         List<Order> orders = orderRepository.findByUserUsername("testuser");
         assertEquals(1, orders.size());
 
@@ -108,13 +95,10 @@ public class OrderServiceIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testPlaceOrder_ValidationErrors() {
-        // Ensure the cart is empty for the user
         User user = userRepository.findByUsername("testuser").orElseThrow();
         Cart cart = new Cart();
         cart.setUser(user);
         cartRepository.save(cart);
-
-        // Try to place an order with an empty cart
         OrderRequestDTO orderRequest = new OrderRequestDTO();
         orderRequest.setRetrieveCartItems(true);
 
@@ -139,8 +123,6 @@ public class OrderServiceIntegrationTest {
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testCancelOrder_AuthorizationErrors() {
         User user = userRepository.findByUsername("testuser").orElseThrow();
-
-        // Create and save an order for another user
         User anotherUser = new User();
         anotherUser.setUsername("anotheruser");
         anotherUser.setPassword("securepassword");
@@ -170,8 +152,6 @@ public class OrderServiceIntegrationTest {
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testConfirmShipment_OtherErrors() {
         User user = userRepository.findByUsername("testuser").orElseThrow();
-
-        // Create and save an order with payment not confirmed
         Order order = new Order();
         order.setUser(user);
         order.setOrderStatus(OrderStatus.PENDING);
@@ -179,8 +159,6 @@ public class OrderServiceIntegrationTest {
         order.setOrderDateTime(LocalDateTime.now());
         order.setShippingAddress(user.getAddress());
         orderRepository.save(order);
-
-        // Try to confirm shipment
         ResponseEntity<String> response = orderService.confirmShipment(order.getOrderId());
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
@@ -191,8 +169,6 @@ public class OrderServiceIntegrationTest {
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testConfirmShipment_AlreadyShipped() {
         User user = userRepository.findByUsername("testuser").orElseThrow();
-
-        // Create and save an order with status SHIPPED
         Order order = new Order();
         order.setUser(user);
         order.setOrderStatus(OrderStatus.SHIPPED);
@@ -200,8 +176,6 @@ public class OrderServiceIntegrationTest {
         order.setOrderDateTime(LocalDateTime.now());
         order.setShippingAddress(user.getAddress());
         orderRepository.save(order);
-
-        // Try to confirm shipment
         ResponseEntity<String> response = orderService.confirmShipment(order.getOrderId());
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
@@ -212,8 +186,6 @@ public class OrderServiceIntegrationTest {
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testGetReceiptForOrder_Success() {
         User user = userRepository.findByUsername("testuser").orElseThrow();
-
-        // Create and save an order
         Order order = new Order();
         order.setUser(user);
         order.setOrderStatus(OrderStatus.SHIPPED);
@@ -221,16 +193,12 @@ public class OrderServiceIntegrationTest {
         order.setOrderDateTime(LocalDateTime.now());
         order.setShippingAddress(user.getAddress());
         orderRepository.save(order);
-
-        // Generate a receipt
         Receipt receipt = new Receipt();
         receipt.setDateIssued(LocalDateTime.now());
         receipt.setTotalAmount(100.0);
         receipt.setShippingCost(10.0);
         order.setReceipt(receipt);
         orderRepository.save(order);
-
-        // Retrieve the receipt
         ReceiptOutputDTO receiptOutputDTO = orderService.getReceiptForOrder(order.getOrderId());
 
         assertNotNull(receiptOutputDTO);

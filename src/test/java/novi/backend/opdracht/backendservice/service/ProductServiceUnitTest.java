@@ -136,7 +136,7 @@ class ProductServiceUnitTest {
         inputDTO.setProductType("Accessory");
         inputDTO.setPrice(50.0);
         inputDTO.setInventoryCount(20);
-        inputDTO.setAccessoryType("BAG");  // Set a valid AccessoryType value
+        inputDTO.setAccessoryType("BAG");
 
         AbstractProduct product = new Accessory();
         product.setProductName(inputDTO.getProductName());
@@ -246,7 +246,7 @@ class ProductServiceUnitTest {
     void testUpdateProduct_UpdateSpecificFields() {
         ProductUpdateDTO updateDTO = new ProductUpdateDTO();
         updateDTO.setProductName("Updated Product");
-        updateDTO.setAccessoryType("BAG");  // Set a valid AccessoryType value
+        updateDTO.setAccessoryType("BAG");
 
         AbstractProduct product = new Accessory();
         product.setProductId(1L);
