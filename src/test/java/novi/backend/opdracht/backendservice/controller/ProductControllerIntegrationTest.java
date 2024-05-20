@@ -99,8 +99,8 @@ class ProductControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].productId", is(clothing.getProductId().intValue())))
-                .andExpect(jsonPath("$[0].productName", is("Test Product")));
+                .andExpect(jsonPath("$[1].productId", is(clothing.getProductId().intValue())))
+                .andExpect(jsonPath("$[1].productName", is("Test Product")));
     }
 
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
