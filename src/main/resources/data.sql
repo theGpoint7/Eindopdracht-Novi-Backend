@@ -23,14 +23,14 @@ INSERT INTO authorities (username, authority) VALUES ('spiderman', 'ROLE_DESIGNE
 INSERT INTO authorities (username, authority) VALUES ('petergriffin', 'ROLE_CUSTOMER');
 INSERT INTO authorities (username, authority) VALUES ('petergriffin', 'ROLE_DESIGNER');
 
--- Voeg ontwerpers toe
+-- Voeg designers toe
 INSERT INTO designers (username, store_name, bio)
 VALUES ('spiderman', 'Spiderman kledingwinkel', 'Ik verkoop mijn spiderman pak!');
 
 INSERT INTO designers (username, store_name, bio)
 VALUES ('petergriffin', 'Peter Griffin''s Boutique', 'Goede mode voor mooie mensen');
 
--- Voeg een product toe aan de AbstractProduct tabel (met de juiste naam)
+-- Voeg een product toe aan de AbstractProduct tabel
 INSERT INTO abstract_product (product_name, product_type, material, price, inventory_count, image_url, product_description, designer_id)
 VALUES ('Klassieke Sneakers', 'Footwear', 'Kunststof', 59.99, 150, 'http://example.com/images/classic-sneakers.jpg', 'Klassieke sneakers geschikt voor dagelijks gebruik.',
         (SELECT designer_id FROM designers WHERE username = 'spiderman'));
