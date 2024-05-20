@@ -69,7 +69,6 @@ public class SpringSecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/products/**").hasAnyRole("DESIGNER", "CUSTOMER")
                                 .requestMatchers(HttpMethod.POST, "/products").hasRole("DESIGNER")
                                 .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("DESIGNER")
-                                .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("DESIGNER")
 
                                 .requestMatchers(HttpMethod.POST, "/cart/**").hasAnyRole("DESIGNER", "CUSTOMER")
                                 .requestMatchers(HttpMethod.PUT, "/cart/**").hasAnyRole("DESIGNER", "CUSTOMER")
@@ -80,11 +79,10 @@ public class SpringSecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/orders/user/{username}").hasAnyRole("DESIGNER", "CUSTOMER")
                                 .requestMatchers(HttpMethod.PUT, "/orders/{orderId}/cancel").hasAnyRole("DESIGNER", "CUSTOMER")
                                 .requestMatchers(HttpMethod.GET, "/orders/{orderId}/receipt").hasAnyRole("DESIGNER", "CUSTOMER")
+                                .requestMatchers(HttpMethod.PUT, "/orders/{orderId}/confirm-shipment").hasRole("DESIGNER")
 
                                 .requestMatchers(HttpMethod.POST, "/payments/process/{orderId}").hasAnyRole("DESIGNER", "CUSTOMER")
                                 .requestMatchers(HttpMethod.POST, "/payments/confirm/{orderId}").hasRole("ADMIN")
-
-                                .requestMatchers(HttpMethod.PUT, "/orders/{orderId}/confirm-shipment").hasRole("DESIGNER")
 
                                 .requestMatchers(HttpMethod.POST, "/feedback").hasRole("CUSTOMER")
 
