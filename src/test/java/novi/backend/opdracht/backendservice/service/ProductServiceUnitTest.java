@@ -1,8 +1,8 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
-import novi.backend.opdracht.backendservice.dto.output.ProductOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
+import novi.backend.opdracht.backendservice.dto.output.ProductOutputDto;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.exception.ProductNameTooLongException;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
@@ -70,7 +70,7 @@ class ProductServiceUnitTest {
 
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
-        ProductOutputDTO productOutputDTO = productService.getProductById(1L);
+        ProductOutputDto productOutputDTO = productService.getProductById(1L);
 
         assertNotNull(productOutputDTO);
         assertEquals(1L, productOutputDTO.getProductId());
@@ -87,7 +87,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testCreateProduct_Success() {
-        ProductInputDTO inputDTO = new ProductInputDTO();
+        ProductInputDto inputDTO = new ProductInputDto();
         inputDTO.setProductName("New Product");
         inputDTO.setProductType("Clothing");
         inputDTO.setPrice(100.0);
@@ -101,7 +101,7 @@ class ProductServiceUnitTest {
         Mockito.when(productRepository.existsByProductName(inputDTO.getProductName())).thenReturn(false);
         Mockito.when(productRepository.save(any(AbstractProduct.class))).thenReturn(product);
 
-        ProductOutputDTO productOutputDTO = productService.createProduct(inputDTO);
+        ProductOutputDto productOutputDTO = productService.createProduct(inputDTO);
 
         assertNotNull(productOutputDTO);
         assertEquals("New Product", productOutputDTO.getProductName());
@@ -109,7 +109,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testCreateProduct_DuplicateName() {
-        ProductInputDTO inputDTO = new ProductInputDTO();
+        ProductInputDto inputDTO = new ProductInputDto();
         inputDTO.setProductName("Existing Product");
         inputDTO.setProductType("Clothing");
 
@@ -121,7 +121,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testCreateProduct_InvalidType() {
-        ProductInputDTO inputDTO = new ProductInputDTO();
+        ProductInputDto inputDTO = new ProductInputDto();
         inputDTO.setProductName("Invalid Product");
         inputDTO.setProductType("InvalidType");
 
@@ -131,7 +131,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testCreateProduct_Accessory() {
-        ProductInputDTO inputDTO = new ProductInputDTO();
+        ProductInputDto inputDTO = new ProductInputDto();
         inputDTO.setProductName("New Accessory");
         inputDTO.setProductType("Accessory");
         inputDTO.setPrice(50.0);
@@ -147,7 +147,7 @@ class ProductServiceUnitTest {
         Mockito.when(productRepository.existsByProductName(inputDTO.getProductName())).thenReturn(false);
         Mockito.when(productRepository.save(any(AbstractProduct.class))).thenReturn(product);
 
-        ProductOutputDTO productOutputDTO = productService.createProduct(inputDTO);
+        ProductOutputDto productOutputDTO = productService.createProduct(inputDTO);
 
         assertNotNull(productOutputDTO);
         assertEquals("New Accessory", productOutputDTO.getProductName());
@@ -155,7 +155,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testCreateProduct_Footwear() {
-        ProductInputDTO inputDTO = new ProductInputDTO();
+        ProductInputDto inputDTO = new ProductInputDto();
         inputDTO.setProductName("New Footwear");
         inputDTO.setProductType("Footwear");
         inputDTO.setPrice(150.0);
@@ -169,7 +169,7 @@ class ProductServiceUnitTest {
         Mockito.when(productRepository.existsByProductName(inputDTO.getProductName())).thenReturn(false);
         Mockito.when(productRepository.save(any(AbstractProduct.class))).thenReturn(product);
 
-        ProductOutputDTO productOutputDTO = productService.createProduct(inputDTO);
+        ProductOutputDto productOutputDTO = productService.createProduct(inputDTO);
 
         assertNotNull(productOutputDTO);
         assertEquals("New Footwear", productOutputDTO.getProductName());
@@ -177,7 +177,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testUpdateProduct_Success() {
-        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        ProductUpdateDto updateDTO = new ProductUpdateDto();
         updateDTO.setProductName("Updated Product");
 
         AbstractProduct product = new Clothing();
@@ -188,7 +188,7 @@ class ProductServiceUnitTest {
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         Mockito.when(productRepository.save(any(AbstractProduct.class))).thenReturn(product);
 
-        ProductOutputDTO productOutputDTO = productService.updateProduct(1L, updateDTO);
+        ProductOutputDto productOutputDTO = productService.updateProduct(1L, updateDTO);
 
         assertNotNull(productOutputDTO);
         assertEquals("Updated Product", productOutputDTO.getProductName());
@@ -196,7 +196,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testUpdateProduct_NotFound() {
-        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        ProductUpdateDto updateDTO = new ProductUpdateDto();
         updateDTO.setProductName("Updated Product");
 
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.empty());
@@ -207,7 +207,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testUpdateProduct_DuplicateName() {
-        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        ProductUpdateDto updateDTO = new ProductUpdateDto();
         updateDTO.setProductName("Existing Product");
 
         AbstractProduct product = new Clothing();
@@ -224,7 +224,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testUpdateProduct_Unauthorized() {
-        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        ProductUpdateDto updateDTO = new ProductUpdateDto();
         updateDTO.setProductName("Updated Product");
 
         Designer anotherDesigner = new Designer();
@@ -244,7 +244,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testUpdateProduct_UpdateSpecificFields() {
-        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        ProductUpdateDto updateDTO = new ProductUpdateDto();
         updateDTO.setProductName("Updated Product");
         updateDTO.setAccessoryType("BAG");
 
@@ -256,7 +256,7 @@ class ProductServiceUnitTest {
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         Mockito.when(productRepository.save(any(AbstractProduct.class))).thenReturn(product);
 
-        ProductOutputDTO productOutputDTO = productService.updateProduct(1L, updateDTO);
+        ProductOutputDto productOutputDTO = productService.updateProduct(1L, updateDTO);
 
         assertNotNull(productOutputDTO);
         assertEquals("Updated Product", productOutputDTO.getProductName());
@@ -264,7 +264,7 @@ class ProductServiceUnitTest {
 
     @Test
     void testUpdateProduct_Footwear() {
-        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        ProductUpdateDto updateDTO = new ProductUpdateDto();
         updateDTO.setProductName("Updated Footwear");
         updateDTO.setFootwearSize(42);
         updateDTO.setGender("Male");
@@ -277,7 +277,7 @@ class ProductServiceUnitTest {
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         Mockito.when(productRepository.save(any(AbstractProduct.class))).thenReturn(product);
 
-        ProductOutputDTO productOutputDTO = productService.updateProduct(1L, updateDTO);
+        ProductOutputDto productOutputDTO = productService.updateProduct(1L, updateDTO);
 
         assertNotNull(productOutputDTO);
         assertEquals("Updated Footwear", productOutputDTO.getProductName());
@@ -292,7 +292,7 @@ class ProductServiceUnitTest {
 
         Mockito.when(productRepository.findByDesignerStoreName("Test Store")).thenReturn(List.of(product));
 
-        List<ProductOutputDTO> products = productService.findAllProducts(null, null, null, "Test Store");
+        List<ProductOutputDto> products = productService.findAllProducts(null, null, null, "Test Store");
 
         assertNotNull(products);
         assertFalse(products.isEmpty());
@@ -310,7 +310,7 @@ class ProductServiceUnitTest {
 
         Mockito.when(productRepository.findAll()).thenReturn(List.of(product));
 
-        List<ProductOutputDTO> products = productService.findAllProducts(42, null, null, null);
+        List<ProductOutputDto> products = productService.findAllProducts(42, null, null, null);
 
         assertNotNull(products);
         assertFalse(products.isEmpty());
@@ -328,7 +328,7 @@ class ProductServiceUnitTest {
 
         Mockito.when(productRepository.findAll()).thenReturn(List.of(product));
 
-        List<ProductOutputDTO> products = productService.findAllProducts(null, "M", null, null);
+        List<ProductOutputDto> products = productService.findAllProducts(null, "M", null, null);
 
         assertNotNull(products);
         assertFalse(products.isEmpty());
@@ -346,7 +346,7 @@ class ProductServiceUnitTest {
 
         Mockito.when(productRepository.findAll()).thenReturn(List.of(product));
 
-        List<ProductOutputDTO> products = productService.findAllProducts(null, null, "Red", null);
+        List<ProductOutputDto> products = productService.findAllProducts(null, null, "Red", null);
 
         assertNotNull(products);
         assertFalse(products.isEmpty());
@@ -368,7 +368,7 @@ class ProductServiceUnitTest {
         product.setDesigner(designer);
         product.setPromotion(promotion);
 
-        ProductOutputDTO dto = productService.toProductOutputDTO(product);
+        ProductOutputDto dto = productService.toProductOutputDTO(product);
 
         assertNotNull(dto);
         assertNotNull(dto.getPromotion());
@@ -390,7 +390,7 @@ class ProductServiceUnitTest {
         product.setDesigner(designer);
         product.setPromotion(promotion);
 
-        ProductOutputDTO dto = productService.toProductOutputDTO(product);
+        ProductOutputDto dto = productService.toProductOutputDTO(product);
 
         assertNotNull(dto);
         assertNotNull(dto.getPromotion());

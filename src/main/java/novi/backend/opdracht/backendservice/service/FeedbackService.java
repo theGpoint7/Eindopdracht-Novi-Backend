@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.FeedbackInputDTO;
-import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.FeedbackInputDto;
+import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDto;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.model.*;
 import novi.backend.opdracht.backendservice.repository.DesignerRepository;
@@ -28,7 +28,7 @@ public class FeedbackService {
         this.authenticationService = authenticationService;
     }
 
-    public FeedbackOutputDTO postFeedback(FeedbackInputDTO feedbackInputDTO) {
+    public FeedbackOutputDto postFeedback(FeedbackInputDto feedbackInputDTO) {
         User user = authenticationService.getCurrentUser();
         Feedback feedback = new Feedback();
         feedback.validateFeedbackInput(feedbackInputDTO, productRepository, designerRepository);
@@ -50,12 +50,12 @@ public class FeedbackService {
         return mapToFeedbackOutputDTO(savedFeedback);
     }
 
-    public FeedbackOutputDTO getFeedbackById(Long feedbackId) {
+    public FeedbackOutputDto getFeedbackById(Long feedbackId) {
         Feedback feedback = findFeedbackById(feedbackId);
         return mapToFeedbackOutputDTO(feedback);
     }
 
-    public List<FeedbackOutputDTO> getAllFeedback() {
+    public List<FeedbackOutputDto> getAllFeedback() {
         List<Feedback> feedbackList = feedbackRepository.findAll();
         return feedbackList.stream()
                 .map(this::mapToFeedbackOutputDTO)
@@ -77,8 +77,8 @@ public class FeedbackService {
                 .orElseThrow(() -> new BadRequestException("Feedback niet gevonden"));
     }
 
-    private FeedbackOutputDTO mapToFeedbackOutputDTO(Feedback feedback) {
-        FeedbackOutputDTO outputDTO = new FeedbackOutputDTO();
+    private FeedbackOutputDto mapToFeedbackOutputDTO(Feedback feedback) {
+        FeedbackOutputDto outputDTO = new FeedbackOutputDto();
         outputDTO.setFeedbackId(feedback.getFeedbackId());
         outputDTO.setUsername(feedback.getUser().getUsername());
 
@@ -93,14 +93,14 @@ public class FeedbackService {
         return outputDTO;
     }
 
-    public List<FeedbackOutputDTO> getFeedbacksByProductId(Long productId) {
+    public List<FeedbackOutputDto> getFeedbacksByProductId(Long productId) {
         List<Feedback> feedbacks = feedbackRepository.findByProductProductId(productId);
         return feedbacks.stream()
                 .map(this::mapToFeedbackOutputDTO)
                 .collect(Collectors.toList());
     }
 
-    public List<FeedbackOutputDTO> getFeedbacksByDesignerId(Long designerId) {
+    public List<FeedbackOutputDto> getFeedbacksByDesignerId(Long designerId) {
         Designer designer = findDesignerById(designerId);
         List<Feedback> feedbacks = designer.getFeedbacks();
         return feedbacks.stream()

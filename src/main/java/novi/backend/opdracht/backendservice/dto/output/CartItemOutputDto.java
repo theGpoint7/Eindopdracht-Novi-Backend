@@ -1,18 +1,18 @@
 package novi.backend.opdracht.backendservice.dto.output;
 
-public class OrderLineOutputDTO {
-    private Long orderLineId;
+public class CartItemOutputDto {
+    private Long cartItemId;
     private Long productId;
     private String productName;
     private double price;
     private int quantity;
 
-    public Long getOrderLineId() {
-        return orderLineId;
+    public Long getCartItemId() {
+        return cartItemId;
     }
 
-    public void setOrderLineId(Long orderLineId) {
-        this.orderLineId = orderLineId;
+    public void setCartItemId(Long cartItemId) {
+        this.cartItemId = cartItemId;
     }
 
     public Long getProductId() {

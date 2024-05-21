@@ -1,13 +1,16 @@
-package novi.backend.opdracht.backendservice.dto.output;
+package novi.backend.opdracht.backendservice.dto.input;
 
-public class PaymentOutputDTO {
+public class PaymentConfirmationRequestDto {
     private Long paymentId;
     private String paymentMethodType;
     private String confirmationDetails;
+
     private String accountNumber;
     private String bankCode;
+
     private String email;
     private String password;
+
     private String cardNumber;
     private String expiryDate;
     private String cvv;

@@ -5,10 +5,10 @@ import novi.backend.opdracht.backendservice.model.OrderStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class OrderOutputDTO {
+public class OrderOutputDto {
     private Long orderId;
     private String username;
-    private List<OrderLineOutputDTO> orderLines;
+    private List<OrderLineOutputDto> orderLines;
     private String paymentMethodType;
     private double amount;
     private LocalDateTime orderDateTime;
@@ -32,11 +32,11 @@ public class OrderOutputDTO {
         this.username = username;
     }
 
-    public List<OrderLineOutputDTO> getOrderLines() {
+    public List<OrderLineOutputDto> getOrderLines() {
         return orderLines;
     }
 
-    public void setOrderLines(List<OrderLineOutputDTO> orderLines) {
+    public void setOrderLines(List<OrderLineOutputDto> orderLines) {
         this.orderLines = orderLines;
     }
 

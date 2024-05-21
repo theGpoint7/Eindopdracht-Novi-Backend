@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.OrderRequestDTO;
-import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.OrderRequestDto;
+import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDto;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.model.*;
@@ -81,7 +81,7 @@ public class OrderServiceIntegrationTest {
         cartItem.setQuantity(2);
         cart.getItems().add(cartItem);
         cartRepository.save(cart);
-        OrderRequestDTO orderRequest = new OrderRequestDTO();
+        OrderRequestDto orderRequest = new OrderRequestDto();
         orderRequest.setRetrieveCartItems(true);
         orderService.placeOrder(orderRequest);
         List<Order> orders = orderRepository.findByUserUsername("testuser");
@@ -99,7 +99,7 @@ public class OrderServiceIntegrationTest {
         Cart cart = new Cart();
         cart.setUser(user);
         cartRepository.save(cart);
-        OrderRequestDTO orderRequest = new OrderRequestDTO();
+        OrderRequestDto orderRequest = new OrderRequestDto();
         orderRequest.setRetrieveCartItems(true);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -199,7 +199,7 @@ public class OrderServiceIntegrationTest {
         receipt.setShippingCost(10.0);
         order.setReceipt(receipt);
         orderRepository.save(order);
-        ReceiptOutputDTO receiptOutputDTO = orderService.getReceiptForOrder(order.getOrderId());
+        ReceiptOutputDto receiptOutputDTO = orderService.getReceiptForOrder(order.getOrderId());
 
         assertNotNull(receiptOutputDTO);
         assertEquals(100.0, receiptOutputDTO.getTotalAmount());

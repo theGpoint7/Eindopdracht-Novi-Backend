@@ -1,9 +1,9 @@
 package novi.backend.opdracht.backendservice.controller;
 
 import jakarta.validation.Valid;
-import novi.backend.opdracht.backendservice.dto.input.OrderRequestDTO;
-import novi.backend.opdracht.backendservice.dto.output.OrderOutputDTO;
-import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.OrderRequestDto;
+import novi.backend.opdracht.backendservice.dto.output.OrderOutputDto;
+import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDto;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.service.OrderService;
 import novi.backend.opdracht.backendservice.service.ValidationService;
@@ -29,7 +29,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<String> placeOrder(@RequestBody @Valid OrderRequestDTO orderRequest, BindingResult bindingResult) {
+    public ResponseEntity<String> placeOrder(@RequestBody @Valid OrderRequestDto orderRequest, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String errorMessage = validationService.formatFieldErrors(bindingResult);
             return ResponseEntity.badRequest().body(errorMessage);
@@ -41,7 +41,7 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrderDetails(@PathVariable Long orderId) {
         try {
-            OrderOutputDTO orderDetails = orderService.getOrderDetails(orderId);
+            OrderOutputDto orderDetails = orderService.getOrderDetails(orderId);
             return ResponseEntity.ok(orderDetails);
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bestelling niet gevonden");
@@ -51,8 +51,8 @@ public class OrderController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<OrderOutputDTO>> getUserOrders() {
-        List<OrderOutputDTO> userOrders = orderService.getUserOrders();
+    public ResponseEntity<List<OrderOutputDto>> getUserOrders() {
+        List<OrderOutputDto> userOrders = orderService.getUserOrders();
         return ResponseEntity.ok(userOrders);
     }
 
@@ -87,7 +87,7 @@ public class OrderController {
     @GetMapping("/{orderId}/receipt")
     public ResponseEntity<?> getReceiptForOrder(@PathVariable Long orderId) {
         try {
-            ReceiptOutputDTO receiptOutputDTO = orderService.getReceiptForOrder(orderId);
+            ReceiptOutputDto receiptOutputDTO = orderService.getReceiptForOrder(orderId);
             return ResponseEntity.ok(receiptOutputDTO);
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bon niet gevonden voor bestelling met ID: " + orderId);

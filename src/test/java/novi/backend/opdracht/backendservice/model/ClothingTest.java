@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +42,7 @@ public class ClothingTest {
 
     @Test
     public void testInsertSpecificFields() {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         productInputDTO.setClothingSize("L");
         productInputDTO.setColor("Blauw");
         productInputDTO.setFit("Normaal");
@@ -54,7 +54,7 @@ public class ClothingTest {
 
     @Test
     public void testUpdateSpecificFields() {
-        ProductUpdateDTO productUpdateDTO = new ProductUpdateDTO();
+        ProductUpdateDto productUpdateDTO = new ProductUpdateDto();
         productUpdateDTO.setClothingSize("S");
         productUpdateDTO.setColor("Groen");
         productUpdateDTO.setFit("Loose-fit");

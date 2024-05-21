@@ -1,8 +1,8 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.CartItemInputDTO;
-import novi.backend.opdracht.backendservice.dto.output.CartOutputDTO;
-import novi.backend.opdracht.backendservice.dto.output.CartItemOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.CartItemInputDto;
+import novi.backend.opdracht.backendservice.dto.output.CartOutputDto;
+import novi.backend.opdracht.backendservice.dto.output.CartItemOutputDto;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.model.*;
 import novi.backend.opdracht.backendservice.repository.CartRepository;
@@ -34,7 +34,7 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    public void addToCart(CartItemInputDTO cartItemInputDTO) {
+    public void addToCart(CartItemInputDto cartItemInputDTO) {
         User user = authenticationService.getCurrentUser();
         Cart cart = cartRepository.findByUserUsername(user.getUsername())
                 .orElseGet(() -> {
@@ -55,7 +55,7 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    public void removeFromCart(CartItemInputDTO cartItemInputDTO) {
+    public void removeFromCart(CartItemInputDto cartItemInputDTO) {
         User user = authenticationService.getCurrentUser();
         Cart cart = cartRepository.findByUserUsername(user.getUsername())
                 .orElseThrow(() -> new BadRequestException("Winkelwagen niet gevonden"));
@@ -68,11 +68,11 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    public CartOutputDTO getCartContents() {
+    public CartOutputDto getCartContents() {
         User user = authenticationService.getCurrentUser();
         Cart cart = cartRepository.findByUserUsername(user.getUsername())
                 .orElseThrow(() -> new BadRequestException("Winkelwagen niet gevonden"));
-        CartOutputDTO cartOutputDTO = new CartOutputDTO();
+        CartOutputDto cartOutputDTO = new CartOutputDto();
         cartOutputDTO.setCartId(cart.getCartId());
         cartOutputDTO.setUsername(cart.getUser().getUsername());
         double totalPrice = cart.getItems().stream()
@@ -80,9 +80,9 @@ public class CartService {
                 .sum();
         cartOutputDTO.setTotalPrice(totalPrice);
 
-        List<CartItemOutputDTO> cartItemOutputDTOs = cart.getItems().stream()
+        List<CartItemOutputDto> cartItemOutputDTOs = cart.getItems().stream()
                 .map(cartItem -> {
-                    CartItemOutputDTO cartItemOutputDTO = new CartItemOutputDTO();
+                    CartItemOutputDto cartItemOutputDTO = new CartItemOutputDto();
                     cartItemOutputDTO.setProductId(cartItem.getProduct().getProductId());
                     cartItemOutputDTO.setProductName(cartItem.getProduct().getProductName());
                     cartItemOutputDTO.setPrice(cartItem.getProduct().getPrice());
@@ -102,7 +102,7 @@ public class CartService {
         return product.getProductName();
     }
 
-    public void updateCartItemQuantity(CartItemInputDTO cartItemInputDTO) {
+    public void updateCartItemQuantity(CartItemInputDto cartItemInputDTO) {
         User user = authenticationService.getCurrentUser();
         Cart cart = cartRepository.findByUserUsername(user.getUsername())
                 .orElseThrow(() -> new BadRequestException("Winkelwagen niet gevonden"));

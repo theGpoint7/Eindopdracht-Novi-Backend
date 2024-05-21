@@ -2,15 +2,19 @@ package novi.backend.opdracht.backendservice.dto.input;
 
 import jakarta.validation.constraints.*;
 
-public class OrderLineInputDTO {
+public class CartItemInputDto {
     @NotNull
     private Long productId;
 
     @NotNull
-    @Min(value = 1, message = "Minimale hoeveelheid is 1.")
     private int quantity;
 
-    public OrderLineInputDTO() {
+    public CartItemInputDto(Long productId, int quantity) {
+        this.productId = productId;
+        this.quantity = quantity;
+    }
+
+    public CartItemInputDto() {
 
     }
 

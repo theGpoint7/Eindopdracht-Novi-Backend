@@ -3,7 +3,7 @@ package novi.backend.opdracht.backendservice.dto.output;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class ProductOutputDTO {
+public class ProductOutputDto {
     private Long productId;
     private String productName;
     private String productType;
@@ -20,7 +20,7 @@ public class ProductOutputDTO {
     private String accessoryType;
     private DesignerInfo designer;
     private PromotionInfo promotion;
-    private List<FeedbackOutputDTO> feedbacks;
+    private List<FeedbackOutputDto> feedbacks;
 
 
     public Long getProductId() {
@@ -216,11 +216,11 @@ public class ProductOutputDTO {
             this.promotionEndDateTime = promotionEndDateTime;
         }
     }
-    public List<FeedbackOutputDTO> getFeedbacks() {
+    public List<FeedbackOutputDto> getFeedbacks() {
         return feedbacks;
     }
 
-    public void setFeedbacks(List<FeedbackOutputDTO> feedbacks) {
+    public void setFeedbacks(List<FeedbackOutputDto> feedbacks) {
         this.feedbacks = feedbacks;
     }
 }

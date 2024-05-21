@@ -2,7 +2,7 @@ package novi.backend.opdracht.backendservice.service;
 
 import novi.backend.opdracht.backendservice.dto.output.SalesFiguresDto;
 import novi.backend.opdracht.backendservice.dto.output.DesignerResponseDto;
-import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDTO;
+import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDto;
 import novi.backend.opdracht.backendservice.exception.AuthenticationException;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.model.*;
@@ -61,7 +61,7 @@ public class DesignerService {
         dto.setDesignerId(designer.getDesignerId());
         dto.setStoreName(designer.getStoreName());
         dto.setBio(designer.getBio());
-        List<FeedbackOutputDTO> feedbacks = designer.getFeedbacks().stream()
+        List<FeedbackOutputDto> feedbacks = designer.getFeedbacks().stream()
                 .map(this::mapFeedbackToFeedbackOutputDTO)
                 .collect(Collectors.toList());
         dto.setFeedbacks(feedbacks);
@@ -69,8 +69,8 @@ public class DesignerService {
         return dto;
     }
 
-    private FeedbackOutputDTO mapFeedbackToFeedbackOutputDTO(Feedback feedback) {
-        FeedbackOutputDTO feedbackOutputDTO = new FeedbackOutputDTO();
+    private FeedbackOutputDto mapFeedbackToFeedbackOutputDTO(Feedback feedback) {
+        FeedbackOutputDto feedbackOutputDTO = new FeedbackOutputDto();
         feedbackOutputDTO.setFeedbackId(feedback.getFeedbackId());
         feedbackOutputDTO.setUsername(feedback.getUser().getUsername());
         if (feedback.getProduct() != null) {

@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +34,7 @@ public class FootwearTest {
 
     @Test
     public void testInsertSpecificFields() {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         productInputDTO.setFootwearSize(38);
         productInputDTO.setGender("Vrouw");
         footwear.insertSpecificFields(productInputDTO);
@@ -44,7 +44,7 @@ public class FootwearTest {
 
     @Test
     public void testUpdateSpecificFields() {
-        ProductUpdateDTO productUpdateDTO = new ProductUpdateDTO();
+        ProductUpdateDto productUpdateDTO = new ProductUpdateDto();
         productUpdateDTO.setFootwearSize(40);
         productUpdateDTO.setGender("Unisex");
         footwear.updateSpecificFields(productUpdateDTO);

@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.controller;
 
-import novi.backend.opdracht.backendservice.dto.input.FeedbackInputDTO;
-import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.FeedbackInputDto;
+import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDto;
 import novi.backend.opdracht.backendservice.service.FeedbackService;
 import novi.backend.opdracht.backendservice.service.ValidationService;
 import org.springframework.http.ResponseEntity;
@@ -25,13 +25,13 @@ public class FeedbackController {
     }
 
     @PostMapping
-    public ResponseEntity<?> postFeedback(@Valid @RequestBody FeedbackInputDTO feedbackInputDTO, BindingResult result) {
+    public ResponseEntity<?> postFeedback(@Valid @RequestBody FeedbackInputDto feedbackInputDTO, BindingResult result) {
         if (result.hasErrors()) {
             String errorMessage = validationService.formatFieldErrors(result);
             return ResponseEntity.badRequest().body(errorMessage);
         }
 
-        FeedbackOutputDTO createdFeedback = feedbackService.postFeedback(feedbackInputDTO);
+        FeedbackOutputDto createdFeedback = feedbackService.postFeedback(feedbackInputDTO);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{feedbackId}")

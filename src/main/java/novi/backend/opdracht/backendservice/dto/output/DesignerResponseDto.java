@@ -7,7 +7,7 @@ public class DesignerResponseDto {
     private Long designerId;
     private String storeName;
     private String bio;
-    private List<FeedbackOutputDTO> feedbacks;
+    private List<FeedbackOutputDto> feedbacks;
 
     public Long getDesignerId() {
         return designerId;
@@ -33,11 +33,11 @@ public class DesignerResponseDto {
         this.bio = bio;
     }
 
-    public List<FeedbackOutputDTO> getFeedbacks() {
+    public List<FeedbackOutputDto> getFeedbacks() {
         return feedbacks;
     }
 
-    public void setFeedbacks(List<FeedbackOutputDTO> feedbacks) {
+    public void setFeedbacks(List<FeedbackOutputDto> feedbacks) {
         this.feedbacks = feedbacks;
     }
 }

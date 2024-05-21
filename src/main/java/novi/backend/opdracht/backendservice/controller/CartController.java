@@ -1,8 +1,8 @@
 package novi.backend.opdracht.backendservice.controller;
 
 import jakarta.validation.Valid;
-import novi.backend.opdracht.backendservice.dto.input.CartItemInputDTO;
-import novi.backend.opdracht.backendservice.dto.output.CartOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.CartItemInputDto;
+import novi.backend.opdracht.backendservice.dto.output.CartOutputDto;
 import novi.backend.opdracht.backendservice.service.CartService;
 import novi.backend.opdracht.backendservice.service.ValidationService;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ public class CartController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<String> addToCart(@RequestBody @Valid CartItemInputDTO cartItemInputDTO, BindingResult result) {
+    public ResponseEntity<String> addToCart(@RequestBody @Valid CartItemInputDto cartItemInputDTO, BindingResult result) {
         if (result.hasErrors()) {
             String errorMessage = validationService.formatFieldErrors(result);
             return ResponseEntity.badRequest().body(errorMessage);
@@ -37,7 +37,7 @@ public class CartController {
     }
 
     @PostMapping("/remove")
-    public ResponseEntity<String> removeFromCart(@RequestBody @Valid CartItemInputDTO cartItemInputDTO, BindingResult result) {
+    public ResponseEntity<String> removeFromCart(@RequestBody @Valid CartItemInputDto cartItemInputDTO, BindingResult result) {
         if (result.hasErrors()) {
             String errorMessage = validationService.formatFieldErrors(result);
             return ResponseEntity.badRequest().body(errorMessage);
@@ -48,13 +48,13 @@ public class CartController {
     }
 
     @GetMapping
-    public ResponseEntity<CartOutputDTO> getCartContents() {
-        CartOutputDTO cartContents = cartService.getCartContents();
+    public ResponseEntity<CartOutputDto> getCartContents() {
+        CartOutputDto cartContents = cartService.getCartContents();
         return ResponseEntity.ok(cartContents);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<String> updateCartItemQuantity(@RequestBody @Valid CartItemInputDTO cartItemInputDTO, BindingResult result) {
+    public ResponseEntity<String> updateCartItemQuantity(@RequestBody @Valid CartItemInputDto cartItemInputDTO, BindingResult result) {
         if (result.hasErrors()) {
             String errorMessage = validationService.formatFieldErrors(result);
             return ResponseEntity.badRequest().body(errorMessage);

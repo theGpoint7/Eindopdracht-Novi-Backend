@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -98,7 +98,7 @@ public class AbstractProductTest {
 
     @Test
     public void testInsertCommonFields() {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         productInputDTO.setProductName("testproduct-naam");
         productInputDTO.setProductType("footwear");
         productInputDTO.setPrice(200.0);
@@ -120,7 +120,7 @@ public class AbstractProductTest {
 
     @Test
     public void testUpdateCommonFields() {
-        ProductUpdateDTO productUpdateDTO = new ProductUpdateDTO();
+        ProductUpdateDto productUpdateDTO = new ProductUpdateDto();
         productUpdateDTO.setProductName("Testproductnaam-geupdate");
         productUpdateDTO.setPrice(200.0);
         productUpdateDTO.setInventoryCount(20);

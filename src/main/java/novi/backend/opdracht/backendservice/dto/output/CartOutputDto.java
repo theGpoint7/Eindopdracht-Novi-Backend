@@ -2,10 +2,10 @@ package novi.backend.opdracht.backendservice.dto.output;
 
 import java.util.List;
 
-public class CartOutputDTO {
+public class CartOutputDto {
     private Long cartId;
     private String username;
-    private List<CartItemOutputDTO> products;
+    private List<CartItemOutputDto> products;
     private double totalPrice;
 
     public Long getCartId() {
@@ -24,11 +24,11 @@ public class CartOutputDTO {
         this.username = username;
     }
 
-    public List<CartItemOutputDTO> getProducts() {
+    public List<CartItemOutputDto> getProducts() {
         return products;
     }
 
-    public void setProducts(List<CartItemOutputDTO> products) {
+    public void setProducts(List<CartItemOutputDto> products) {
         this.products = products;
     }
 

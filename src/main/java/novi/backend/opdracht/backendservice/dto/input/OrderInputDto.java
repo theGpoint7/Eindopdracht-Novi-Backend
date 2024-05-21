@@ -3,12 +3,12 @@ package novi.backend.opdracht.backendservice.dto.input;
 import jakarta.validation.constraints.*;
 import java.util.List;
 
-public class OrderInputDTO {
+public class OrderInputDto {
     @NotNull
     private String username;
 
     @NotNull
-    private List<OrderLineInputDTO> orderLines;
+    private List<OrderLineInputDto> orderLines;
 
     @NotNull
     private String paymentMethodType;
@@ -27,11 +27,11 @@ public class OrderInputDTO {
         this.username = username;
     }
 
-    public List<OrderLineInputDTO> getOrderLines() {
+    public List<OrderLineInputDto> getOrderLines() {
         return orderLines;
     }
 
-    public void setOrderLines(List<OrderLineInputDTO> orderLines) {
+    public void setOrderLines(List<OrderLineInputDto> orderLines) {
         this.orderLines = orderLines;
     }
 

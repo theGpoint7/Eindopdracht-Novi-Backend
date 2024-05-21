@@ -2,7 +2,7 @@ package novi.backend.opdracht.backendservice.dto.output;
 
 import java.time.LocalDateTime;
 
-public class FeedbackOutputDTO {
+public class FeedbackOutputDto {
 
     private Long feedbackId;
     private String username;
@@ -11,10 +11,10 @@ public class FeedbackOutputDTO {
     private String content;
     private LocalDateTime feedbackDateTime;
 
-    public FeedbackOutputDTO() {
+    public FeedbackOutputDto() {
     }
 
-    public FeedbackOutputDTO(Long feedbackId, String username, Long productId, Long designerId, String content, LocalDateTime feedbackDateTime) {
+    public FeedbackOutputDto(Long feedbackId, String username, Long productId, Long designerId, String content, LocalDateTime feedbackDateTime) {
         this.feedbackId = feedbackId;
         this.username = username;
         this.productId = productId;

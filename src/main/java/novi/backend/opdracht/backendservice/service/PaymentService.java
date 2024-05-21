@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDTO;
-import novi.backend.opdracht.backendservice.dto.output.PaymentOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDto;
+import novi.backend.opdracht.backendservice.dto.output.PaymentOutputDto;
 import novi.backend.opdracht.backendservice.exception.AccessDeniedException;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
@@ -24,8 +24,8 @@ public class PaymentService {
         this.orderRepository = orderRepository;
     }
 
-    public PaymentOutputDTO toPaymentOutputDTO(AbstractPaymentMethod paymentMethod) {
-        PaymentOutputDTO dto = new PaymentOutputDTO();
+    public PaymentOutputDto toPaymentOutputDTO(AbstractPaymentMethod paymentMethod) {
+        PaymentOutputDto dto = new PaymentOutputDto();
         dto.setPaymentId(paymentMethod.getPaymentMethodId());
         dto.setPaymentMethodType(paymentMethod.getPaymentMethodType());
         if (paymentMethod instanceof BankTransferPayment bankTransferPayment) {
@@ -42,7 +42,7 @@ public class PaymentService {
         return dto;
     }
 
-    public boolean confirmPayment(Long orderId, PaymentConfirmationRequestDTO requestDTO) {
+    public boolean confirmPayment(Long orderId, PaymentConfirmationRequestDto requestDTO) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order niet gevonden"));
         if (order.getPaymentStatus() != PaymentStatus.PROCESSING) {
@@ -71,7 +71,7 @@ public class PaymentService {
         return paymentMatches;
     }
 
-    public PaymentOutputDTO processPaymentAfterOrderPlacement(Long orderId, PaymentConfirmationRequestDTO requestDTO) {
+    public PaymentOutputDto processPaymentAfterOrderPlacement(Long orderId, PaymentConfirmationRequestDto requestDTO) {
         if (!orderCorrespondsToUser(orderId)) {
             throw new BadRequestException("Order komt niet overeen met de gebruiker.");
         }

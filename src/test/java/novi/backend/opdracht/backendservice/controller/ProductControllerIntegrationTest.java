@@ -1,9 +1,9 @@
 package novi.backend.opdracht.backendservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
-import novi.backend.opdracht.backendservice.dto.output.ProductOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
+import novi.backend.opdracht.backendservice.dto.output.ProductOutputDto;
 import novi.backend.opdracht.backendservice.model.Clothing;
 import novi.backend.opdracht.backendservice.model.Designer;
 import novi.backend.opdracht.backendservice.model.User;
@@ -148,7 +148,7 @@ class ProductControllerIntegrationTest {
 
         String responseJson = result.getResponse().getContentAsString();
         ObjectMapper objectMapper = new ObjectMapper();
-        ProductOutputDTO createdProduct = objectMapper.readValue(responseJson, ProductOutputDTO.class);
+        ProductOutputDto createdProduct = objectMapper.readValue(responseJson, ProductOutputDto.class);
 
         assertEquals("Nieuw Product", createdProduct.getProductName());
     }
@@ -156,7 +156,7 @@ class ProductControllerIntegrationTest {
     @WithMockUser(username = "testuser", roles = "DESIGNER")
     @Test
     void testCreateProduct_ValidationErrors() throws Exception {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         ObjectMapper objectMapper = new ObjectMapper();
         String productInputJson = objectMapper.writeValueAsString(productInputDTO);
 
@@ -196,7 +196,7 @@ class ProductControllerIntegrationTest {
     @WithMockUser(username = "testuser", roles = "DESIGNER")
     @Test
     void testUpdateProduct_ValidationErrors() throws Exception {
-        ProductUpdateDTO productUpdateDTO = new ProductUpdateDTO();
+        ProductUpdateDto productUpdateDTO = new ProductUpdateDto();
         ObjectMapper objectMapper = new ObjectMapper();
         String productUpdateJson = objectMapper.writeValueAsString(productUpdateDTO);
 

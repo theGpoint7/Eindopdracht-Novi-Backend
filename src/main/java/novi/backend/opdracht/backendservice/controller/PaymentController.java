@@ -1,8 +1,8 @@
 package novi.backend.opdracht.backendservice.controller;
 
 import jakarta.validation.Valid;
-import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDTO;
-import novi.backend.opdracht.backendservice.dto.output.PaymentOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDto;
+import novi.backend.opdracht.backendservice.dto.output.PaymentOutputDto;
 import novi.backend.opdracht.backendservice.service.PaymentService;
 import novi.backend.opdracht.backendservice.service.ValidationService;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ public class PaymentController {
     }
 
     @PostMapping("/confirm/{orderId}")
-    public ResponseEntity<?> confirmPayment(@PathVariable Long orderId, @Valid @RequestBody PaymentConfirmationRequestDTO requestDTO, BindingResult result) {
+    public ResponseEntity<?> confirmPayment(@PathVariable Long orderId, @Valid @RequestBody PaymentConfirmationRequestDto requestDTO, BindingResult result) {
         if (result.hasFieldErrors()) {
             String errorMessage = validationService.formatFieldErrors(result);
             return ResponseEntity.badRequest().body(errorMessage);
@@ -36,12 +36,12 @@ public class PaymentController {
     }
 
     @PostMapping("/process/{orderId}")
-    public ResponseEntity<?> processPayment(@PathVariable Long orderId, @Valid @RequestBody PaymentConfirmationRequestDTO requestDTO, BindingResult result) {
+    public ResponseEntity<?> processPayment(@PathVariable Long orderId, @Valid @RequestBody PaymentConfirmationRequestDto requestDTO, BindingResult result) {
         if (result.hasFieldErrors()) {
             String errorMessage = validationService.formatFieldErrors(result);
             return ResponseEntity.badRequest().body(errorMessage);
         }
-        PaymentOutputDTO paymentOutputDTO = paymentService.processPaymentAfterOrderPlacement(orderId, requestDTO);
+        PaymentOutputDto paymentOutputDTO = paymentService.processPaymentAfterOrderPlacement(orderId, requestDTO);
         return ResponseEntity.ok(paymentOutputDTO);
     }
 }

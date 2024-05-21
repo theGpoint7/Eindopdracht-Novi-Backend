@@ -1,9 +1,9 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.CartItemInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.OrderRequestDTO;
-import novi.backend.opdracht.backendservice.dto.output.OrderOutputDTO;
-import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.CartItemInputDto;
+import novi.backend.opdracht.backendservice.dto.input.OrderRequestDto;
+import novi.backend.opdracht.backendservice.dto.output.OrderOutputDto;
+import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDto;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.model.*;
@@ -97,9 +97,9 @@ class OrderServiceUnitTest {
         Mockito.when(cartService.getUserCart()).thenReturn(cart);
         Mockito.when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
 
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         orderRequestDTO.setRetrieveCartItems(true);
-        orderRequestDTO.setCartItems(Collections.singletonList(new CartItemInputDTO(product.getProductId(), cartItem.getQuantity())));
+        orderRequestDTO.setCartItems(Collections.singletonList(new CartItemInputDto(product.getProductId(), cartItem.getQuantity())));
 
         assertDoesNotThrow(() -> orderService.placeOrder(orderRequestDTO));
 
@@ -113,7 +113,7 @@ class OrderServiceUnitTest {
         cart.setItems(Collections.emptyList());
         Mockito.when(cartService.getUserCart()).thenReturn(cart);
 
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         BadRequestException exception = assertThrows(BadRequestException.class, () -> orderService.placeOrder(orderRequestDTO));
         assertEquals("Kan geen bestelling plaatsen met een lege winkelwagen", exception.getMessage());
     }
@@ -125,9 +125,9 @@ class OrderServiceUnitTest {
         Mockito.when(cartService.getUserCart()).thenReturn(cart);
         Mockito.when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
 
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         orderRequestDTO.setRetrieveCartItems(true);
-        orderRequestDTO.setCartItems(Collections.singletonList(new CartItemInputDTO(product.getProductId(), cartItem.getQuantity())));
+        orderRequestDTO.setCartItems(Collections.singletonList(new CartItemInputDto(product.getProductId(), cartItem.getQuantity())));
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> orderService.placeOrder(orderRequestDTO));
         assertEquals("Onvoldoende voorraad voor product: Test Product", exception.getMessage());
@@ -139,9 +139,9 @@ class OrderServiceUnitTest {
         Mockito.when(cartService.getUserCart()).thenReturn(cart);
         Mockito.when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         orderRequestDTO.setRetrieveCartItems(true);
-        orderRequestDTO.setCartItems(Collections.singletonList(new CartItemInputDTO(product.getProductId(), cartItem.getQuantity())));
+        orderRequestDTO.setCartItems(Collections.singletonList(new CartItemInputDto(product.getProductId(), cartItem.getQuantity())));
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> orderService.placeOrder(orderRequestDTO));
         assertEquals("Product niet gevonden", exception.getMessage());
@@ -155,9 +155,9 @@ class OrderServiceUnitTest {
         Mockito.when(cartService.getUserCart()).thenReturn(cart);
         Mockito.when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         orderRequestDTO.setRetrieveCartItems(true);
-        orderRequestDTO.setCartItems(List.of(new CartItemInputDTO(product.getProductId(), cartItem.getQuantity())));
+        orderRequestDTO.setCartItems(List.of(new CartItemInputDto(product.getProductId(), cartItem.getQuantity())));
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> orderService.placeOrder(orderRequestDTO));
         assertEquals("Product niet gevonden", exception.getMessage());
@@ -183,11 +183,11 @@ class OrderServiceUnitTest {
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         Mockito.when(productRepository.findById(2L)).thenReturn(Optional.of(product2));
 
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         orderRequestDTO.setRetrieveCartItems(true);
         orderRequestDTO.setCartItems(List.of(
-                new CartItemInputDTO(product.getProductId(), cartItem.getQuantity()),
-                new CartItemInputDTO(product2.getProductId(), 1)
+                new CartItemInputDto(product.getProductId(), cartItem.getQuantity()),
+                new CartItemInputDto(product2.getProductId(), 1)
         ));
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> orderService.placeOrder(orderRequestDTO));
@@ -212,11 +212,11 @@ class OrderServiceUnitTest {
         Mockito.when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         Mockito.when(productRepository.findById(2L)).thenReturn(Optional.of(product2));
 
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         orderRequestDTO.setRetrieveCartItems(true);
         orderRequestDTO.setCartItems(List.of(
-                new CartItemInputDTO(product.getProductId(), cartItem.getQuantity()),
-                new CartItemInputDTO(product2.getProductId(), 1)
+                new CartItemInputDto(product.getProductId(), cartItem.getQuantity()),
+                new CartItemInputDto(product2.getProductId(), 1)
         ));
 
         assertDoesNotThrow(() -> orderService.placeOrder(orderRequestDTO));
@@ -230,9 +230,9 @@ class OrderServiceUnitTest {
         Mockito.when(cartService.getUserCart()).thenReturn(cart);
         Mockito.when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
 
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         orderRequestDTO.setRetrieveCartItems(false);
-        orderRequestDTO.setCartItems(Collections.singletonList(new CartItemInputDTO(product.getProductId(), cartItem.getQuantity())));
+        orderRequestDTO.setCartItems(Collections.singletonList(new CartItemInputDto(product.getProductId(), cartItem.getQuantity())));
 
         assertDoesNotThrow(() -> orderService.placeOrder(orderRequestDTO));
 
@@ -279,7 +279,7 @@ class OrderServiceUnitTest {
         Mockito.when(orderRepository.findById(anyLong())).thenReturn(Optional.of(order));
         Mockito.when(authenticationService.getCurrentUser()).thenReturn(user);
 
-        OrderOutputDTO result = orderService.getOrderDetails(1L);
+        OrderOutputDto result = orderService.getOrderDetails(1L);
 
         assertEquals(1L, result.getOrderId());
         assertEquals("testuser", result.getUsername());
@@ -309,7 +309,7 @@ class OrderServiceUnitTest {
         List<Order> userOrders = List.of(order1, order2);
         Mockito.when(orderRepository.findByUserUsername(user.getUsername())).thenReturn(userOrders);
 
-        List<OrderOutputDTO> result = orderService.getUserOrders();
+        List<OrderOutputDto> result = orderService.getUserOrders();
 
         assertEquals(2, result.size());
         assertEquals(1L, result.get(0).getOrderId());
@@ -342,7 +342,7 @@ class OrderServiceUnitTest {
         Mockito.when(orderRepository.findById(anyLong())).thenReturn(Optional.of(order));
         Mockito.when(authenticationService.getCurrentUser()).thenReturn(user);
 
-        OrderOutputDTO result = orderService.getOrderDetails(1L);
+        OrderOutputDto result = orderService.getOrderDetails(1L);
 
         assertEquals(1L, result.getOrderId());
         assertEquals("testuser", result.getUsername());
@@ -364,7 +364,7 @@ class OrderServiceUnitTest {
         Mockito.when(orderRepository.findById(anyLong())).thenReturn(Optional.of(order));
         Mockito.when(authenticationService.getCurrentUser()).thenReturn(user);
 
-        OrderOutputDTO result = orderService.getOrderDetails(1L);
+        OrderOutputDto result = orderService.getOrderDetails(1L);
 
         assertEquals(1L, result.getOrderId());
         assertEquals("testuser", result.getUsername());
@@ -598,7 +598,7 @@ class OrderServiceUnitTest {
         Mockito.when(orderRepository.findById(anyLong())).thenReturn(Optional.of(order));
         Mockito.when(authenticationService.getCurrentUser()).thenReturn(user);
 
-        ReceiptOutputDTO result = orderService.getReceiptForOrder(1L);
+        ReceiptOutputDto result = orderService.getReceiptForOrder(1L);
 
         assertEquals(1L, result.getReceiptId());
         assertEquals(100.0, result.getTotalAmount());

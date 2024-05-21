@@ -5,18 +5,18 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
-public class OrderRequestDTO {
+public class OrderRequestDto {
 
     @NotNull(message = "retrieveCartItems mag niet null zijn")
     private boolean retrieveCartItems;
 
     @Size(min = 1, message = "winkelwagen mag niet leeg zijn")
-    private List<CartItemInputDTO> cartItems;
+    private List<CartItemInputDto> cartItems;
 
-    public OrderRequestDTO() {
+    public OrderRequestDto() {
     }
 
-    public OrderRequestDTO(boolean retrieveCartItems, List<CartItemInputDTO> cartItems) {
+    public OrderRequestDto(boolean retrieveCartItems, List<CartItemInputDto> cartItems) {
         this.retrieveCartItems = retrieveCartItems;
         this.cartItems = cartItems;
     }
@@ -29,11 +29,11 @@ public class OrderRequestDTO {
         this.retrieveCartItems = retrieveCartItems;
     }
 
-    public List<CartItemInputDTO> getCartItems() {
+    public List<CartItemInputDto> getCartItems() {
         return cartItems;
     }
 
-    public void setCartItems(List<CartItemInputDTO> cartItems) {
+    public void setCartItems(List<CartItemInputDto> cartItems) {
         this.cartItems = cartItems;
     }
 }

@@ -1,8 +1,8 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
-import novi.backend.opdracht.backendservice.dto.output.ProductOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
+import novi.backend.opdracht.backendservice.dto.output.ProductOutputDto;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.exception.ProductNameTooLongException;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
@@ -27,13 +27,13 @@ public class ProductService {
         this.authenticationService = authenticationService;
     }
 
-    public ProductOutputDTO getProductById(Long productId) {
+    public ProductOutputDto getProductById(Long productId) {
         AbstractProduct product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product niet gevonden"));
         return toProductOutputDTO(product);
     }
 
-    public ProductOutputDTO createProduct(ProductInputDTO productInputDTO) {
+    public ProductOutputDto createProduct(ProductInputDto productInputDTO) {
         User user = authenticationService.getCurrentUser();
 
         Designer designer = designerRepository.findByUserUsername(user.getUsername())
@@ -75,7 +75,7 @@ public class ProductService {
         return toProductOutputDTO(product);
     }
 
-    public ProductOutputDTO updateProduct(Long productId, ProductUpdateDTO productUpdateDTO) {
+    public ProductOutputDto updateProduct(Long productId, ProductUpdateDto productUpdateDTO) {
         User user = authenticationService.getCurrentUser();
 
         Designer designer = designerRepository.findByUserUsername(user.getUsername())
@@ -107,7 +107,7 @@ public class ProductService {
     }
 
 
-    public List<ProductOutputDTO> findAllProducts(Integer footwearSize, String clothingSize, String color, String storeName) {
+    public List<ProductOutputDto> findAllProducts(Integer footwearSize, String clothingSize, String color, String storeName) {
         List<AbstractProduct> products;
 
         if (storeName != null) {
@@ -143,8 +143,8 @@ public class ProductService {
         return productRepository.existsByProductName(productName);
     }
 
-    ProductOutputDTO toProductOutputDTO(AbstractProduct product) {
-        ProductOutputDTO dto = new ProductOutputDTO();
+    ProductOutputDto toProductOutputDTO(AbstractProduct product) {
+        ProductOutputDto dto = new ProductOutputDto();
         dto.setProductId(product.getProductId());
         dto.setProductName(product.getProductName());
         dto.setProductType(product.getProductType());
@@ -166,14 +166,14 @@ public class ProductService {
         }
 
         if (product.getDesigner() != null) {
-            ProductOutputDTO.DesignerInfo designerDTO = new ProductOutputDTO.DesignerInfo();
+            ProductOutputDto.DesignerInfo designerDTO = new ProductOutputDto.DesignerInfo();
             designerDTO.setDesignerId(product.getDesigner().getDesignerId());
             designerDTO.setStoreName(product.getDesigner().getStoreName());
             dto.setDesigner(designerDTO);
         }
 
         if (product.getPromotion() != null) {
-            ProductOutputDTO.PromotionInfo promotionDTO = new ProductOutputDTO.PromotionInfo();
+            ProductOutputDto.PromotionInfo promotionDTO = new ProductOutputDto.PromotionInfo();
             promotionDTO.setPromotionId(product.getPromotion().getPromotionId());
             promotionDTO.setPromotionDetails(product.getPromotion().getPromotionDescription());
             promotionDTO.setPromotionDescription(product.getPromotion().getPromotionDescription());

@@ -3,8 +3,8 @@ package novi.backend.opdracht.backendservice.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
 
 @Entity
 public class Accessory extends AbstractProduct {
@@ -24,11 +24,11 @@ public class Accessory extends AbstractProduct {
         this.accessoryType = accessoryType;
     }
 
-    public void insertSpecificFields(ProductInputDTO productInputDTO) {
+    public void insertSpecificFields(ProductInputDto productInputDTO) {
         this.accessoryType = AccessoryType.valueOf(productInputDTO.getAccessoryType());
     }
 
-    public void updateSpecificFields(ProductUpdateDTO productUpdateDTO) {
+    public void updateSpecificFields(ProductUpdateDto productUpdateDTO) {
         this.accessoryType = AccessoryType.valueOf(productUpdateDTO.getAccessoryType());
     }
 }

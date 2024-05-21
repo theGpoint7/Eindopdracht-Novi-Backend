@@ -1,10 +1,10 @@
 package novi.backend.opdracht.backendservice.controller;
 
 import jakarta.validation.Valid;
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
-import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDTO;
-import novi.backend.opdracht.backendservice.dto.output.ProductOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
+import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDto;
+import novi.backend.opdracht.backendservice.dto.output.ProductOutputDto;
 import novi.backend.opdracht.backendservice.service.FeedbackService;
 import novi.backend.opdracht.backendservice.service.ProductService;
 import novi.backend.opdracht.backendservice.service.ValidationService;
@@ -32,15 +32,15 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductOutputDTO>> getAllProducts(
+    public ResponseEntity<List<ProductOutputDto>> getAllProducts(
             @RequestParam(required = false) Integer schoenmaat,
             @RequestParam(required = false) String kledingmaat,
             @RequestParam(required = false) String kleur,
             @RequestParam(required = false) String winkelnaam) {
-        List<ProductOutputDTO> producten = productService.findAllProducts(schoenmaat, kledingmaat, kleur, winkelnaam);
+        List<ProductOutputDto> producten = productService.findAllProducts(schoenmaat, kledingmaat, kleur, winkelnaam);
 
-        for (ProductOutputDTO product : producten) {
-            List<FeedbackOutputDTO> feedbacks = feedbackService.getFeedbacksByProductId(product.getProductId());
+        for (ProductOutputDto product : producten) {
+            List<FeedbackOutputDto> feedbacks = feedbackService.getFeedbacksByProductId(product.getProductId());
             product.setFeedbacks(feedbacks);
         }
 
@@ -48,22 +48,22 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductOutputDTO> getProductById(@PathVariable Long productId) {
-        ProductOutputDTO product = productService.getProductById(productId);
+    public ResponseEntity<ProductOutputDto> getProductById(@PathVariable Long productId) {
+        ProductOutputDto product = productService.getProductById(productId);
 
-        List<FeedbackOutputDTO> feedbacks = feedbackService.getFeedbacksByProductId(productId);
+        List<FeedbackOutputDto> feedbacks = feedbackService.getFeedbacksByProductId(productId);
         product.setFeedbacks(feedbacks);
 
         return ResponseEntity.ok(product);
     }
 
     @PostMapping
-    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductInputDTO productInputDTO, BindingResult result) {
+    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductInputDto productInputDTO, BindingResult result) {
         if (result.hasFieldErrors()) {
             String errorMessage = validationService.formatFieldErrors(result);
             return ResponseEntity.badRequest().body(errorMessage);
         }
-        ProductOutputDTO createdProduct = productService.createProduct(productInputDTO);
+        ProductOutputDto createdProduct = productService.createProduct(productInputDTO);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdProduct.getProductId())
@@ -73,12 +73,12 @@ public class ProductController {
 
     @PutMapping("/{productId}")
     public ResponseEntity<?> updateProduct(@PathVariable Long productId,
-                                           @RequestBody @Valid ProductUpdateDTO productUpdateDTO, BindingResult result) {
+                                           @RequestBody @Valid ProductUpdateDto productUpdateDTO, BindingResult result) {
         if (result.hasFieldErrors()) {
             String errorMessage = validationService.formatFieldErrors(result);
             return ResponseEntity.badRequest().body(errorMessage);
         }
-        ProductOutputDTO updatedProduct = productService.updateProduct(productId, productUpdateDTO);
+        ProductOutputDto updatedProduct = productService.updateProduct(productId, productUpdateDTO);
         return ResponseEntity.ok(updatedProduct);
     }
 }

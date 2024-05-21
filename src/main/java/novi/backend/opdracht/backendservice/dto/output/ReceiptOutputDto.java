@@ -2,7 +2,7 @@ package novi.backend.opdracht.backendservice.dto.output;
 
 import java.time.LocalDateTime;
 
-public class ReceiptOutputDTO {
+public class ReceiptOutputDto {
 
     private Long receiptId;
     private LocalDateTime dateIssued;

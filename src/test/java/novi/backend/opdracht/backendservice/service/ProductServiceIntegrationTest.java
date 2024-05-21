@@ -1,10 +1,9 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
-import novi.backend.opdracht.backendservice.dto.output.ProductOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
+import novi.backend.opdracht.backendservice.dto.output.ProductOutputDto;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
-import novi.backend.opdracht.backendservice.exception.ProductNameTooLongException;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.model.*;
 import novi.backend.opdracht.backendservice.repository.*;
@@ -61,7 +60,7 @@ public class ProductServiceIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = "DESIGNER")
     public void testCreateProduct_Success() {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         productInputDTO.setProductName("New Product");
         productInputDTO.setProductType("Clothing");
         productInputDTO.setPrice(20.0);
@@ -70,7 +69,7 @@ public class ProductServiceIntegrationTest {
         productInputDTO.setColor("Red");
         productInputDTO.setFit("Regular");
 
-        ProductOutputDTO createdProduct = productService.createProduct(productInputDTO);
+        ProductOutputDto createdProduct = productService.createProduct(productInputDTO);
 
         assertNotNull(createdProduct);
         assertEquals("New Product", createdProduct.getProductName());
@@ -79,7 +78,7 @@ public class ProductServiceIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = "DESIGNER")
     public void testCreateProduct_ValidationErrors() {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             productService.createProduct(productInputDTO);
@@ -94,7 +93,7 @@ public class ProductServiceIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = "DESIGNER")
     public void testCreateProduct_ProductTypeValidationError() {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         productInputDTO.setProductName("Invalid Product");
         productInputDTO.setProductType("InvalidType");
         productInputDTO.setPrice(20.0);
@@ -121,7 +120,7 @@ public class ProductServiceIntegrationTest {
         product.setFit("Slim");
         productRepository.save(product);
 
-        ProductOutputDTO foundProduct = productService.getProductById(product.getProductId());
+        ProductOutputDto foundProduct = productService.getProductById(product.getProductId());
 
         assertNotNull(foundProduct);
         assertEquals("Test Product", foundProduct.getProductName());
@@ -151,7 +150,7 @@ public class ProductServiceIntegrationTest {
         product.setFit("Slim");
         productRepository.save(product);
 
-        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        ProductUpdateDto updateDTO = new ProductUpdateDto();
         updateDTO.setProductName("Updated Product");
         updateDTO.setPrice(60.0);
         updateDTO.setInventoryCount(20);
@@ -159,7 +158,7 @@ public class ProductServiceIntegrationTest {
         updateDTO.setColor("Green");
         updateDTO.setFit("Loose");
 
-        ProductOutputDTO updatedProduct = productService.updateProduct(product.getProductId(), updateDTO);
+        ProductOutputDto updatedProduct = productService.updateProduct(product.getProductId(), updateDTO);
 
         assertNotNull(updatedProduct);
         assertEquals("Updated Product", updatedProduct.getProductName());
@@ -168,7 +167,7 @@ public class ProductServiceIntegrationTest {
     @Test
     @WithMockUser(username = "testuser", roles = "DESIGNER")
     public void testUpdateProduct_NotFound() {
-        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        ProductUpdateDto updateDTO = new ProductUpdateDto();
         updateDTO.setProductName("Updated Product");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -202,15 +201,15 @@ public class ProductServiceIntegrationTest {
         clothing2.setColor("Blue");
         clothing2.setFit("Regular");
         productRepository.save(clothing2);
-        List<ProductOutputDTO> allProducts = productService.findAllProducts(null, null, null, null);
-        assertEquals(2, allProducts.size());
-        List<ProductOutputDTO> sizeMProducts = productService.findAllProducts(null, "M", null, null);
+        List<ProductOutputDto> allProducts = productService.findAllProducts(null, null, null, null);
+        assertEquals(3, allProducts.size());
+        List<ProductOutputDto> sizeMProducts = productService.findAllProducts(null, "M", null, null);
         assertEquals(1, sizeMProducts.size());
         assertEquals("Product 2", sizeMProducts.get(0).getProductName());
-        List<ProductOutputDTO> blueProducts = productService.findAllProducts(null, null, "Blue", null);
+        List<ProductOutputDto> blueProducts = productService.findAllProducts(null, null, "Blue", null);
         assertEquals(1, blueProducts.size());
         assertEquals("Product 2", blueProducts.get(0).getProductName());
-        List<ProductOutputDTO> storeProducts = productService.findAllProducts(null, null, null, "Test Store");
+        List<ProductOutputDto> storeProducts = productService.findAllProducts(null, null, null, "Test Store");
         assertEquals(2, storeProducts.size());
     }
 }

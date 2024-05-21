@@ -1,21 +1,18 @@
 package novi.backend.opdracht.backendservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
-import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDTO;
-import novi.backend.opdracht.backendservice.dto.output.ProductOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
+import novi.backend.opdracht.backendservice.dto.output.FeedbackOutputDto;
+import novi.backend.opdracht.backendservice.dto.output.ProductOutputDto;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.service.AuthenticationService;
 import novi.backend.opdracht.backendservice.service.FeedbackService;
 import novi.backend.opdracht.backendservice.service.ProductService;
 import novi.backend.opdracht.backendservice.service.ValidationService;
 import novi.backend.opdracht.backendservice.util.JwtUtil;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -59,11 +56,11 @@ public class ProductControllerUnitTest {
 
     @Test
     public void testGetAllProducts_Success() throws Exception {
-        ProductOutputDTO product = new ProductOutputDTO();
+        ProductOutputDto product = new ProductOutputDto();
         product.setProductId(1L);
         product.setProductName("Test Product");
 
-        FeedbackOutputDTO feedback = new FeedbackOutputDTO();
+        FeedbackOutputDto feedback = new FeedbackOutputDto();
         feedback.setFeedbackId(1L);
         feedback.setContent("Great product!");
 
@@ -83,11 +80,11 @@ public class ProductControllerUnitTest {
 
     @Test
     public void testGetProductById_Success() throws Exception {
-        ProductOutputDTO product = new ProductOutputDTO();
+        ProductOutputDto product = new ProductOutputDto();
         product.setProductId(1L);
         product.setProductName("Test Product");
 
-        FeedbackOutputDTO feedback = new FeedbackOutputDTO();
+        FeedbackOutputDto feedback = new FeedbackOutputDto();
         feedback.setFeedbackId(1L);
         feedback.setContent("Great product!");
 
@@ -119,20 +116,20 @@ public class ProductControllerUnitTest {
 
     @Test
     public void testCreateProduct_Success() throws Exception {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         productInputDTO.setProductName("New Product");
         productInputDTO.setProductType("Type1");
         productInputDTO.setPrice(10.0);
         productInputDTO.setInventoryCount(100);
 
-        ProductOutputDTO productOutputDTO = new ProductOutputDTO();
+        ProductOutputDto productOutputDTO = new ProductOutputDto();
         productOutputDTO.setProductId(1L);
         productOutputDTO.setProductName("New Product");
 
         ObjectMapper objectMapper = new ObjectMapper();
         String productInputJson = objectMapper.writeValueAsString(productInputDTO);
 
-        Mockito.when(productService.createProduct(any(ProductInputDTO.class))).thenReturn(productOutputDTO);
+        Mockito.when(productService.createProduct(any(ProductInputDto.class))).thenReturn(productOutputDTO);
 
         mockMvc.perform(post("/products")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -147,7 +144,7 @@ public class ProductControllerUnitTest {
 
     @Test
     public void testCreateProduct_ValidationErrors() throws Exception {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
 
         ObjectMapper objectMapper = new ObjectMapper();
         String productInputJson = objectMapper.writeValueAsString(productInputDTO);
@@ -164,19 +161,19 @@ public class ProductControllerUnitTest {
 
     @Test
     public void testUpdateProduct_Success() throws Exception {
-        ProductUpdateDTO productUpdateDTO = new ProductUpdateDTO();
+        ProductUpdateDto productUpdateDTO = new ProductUpdateDto();
         productUpdateDTO.setProductName("Updated Product");
         productUpdateDTO.setPrice(15.0);
         productUpdateDTO.setInventoryCount(200);
 
-        ProductOutputDTO productOutputDTO = new ProductOutputDTO();
+        ProductOutputDto productOutputDTO = new ProductOutputDto();
         productOutputDTO.setProductId(1L);
         productOutputDTO.setProductName("Updated Product");
 
         ObjectMapper objectMapper = new ObjectMapper();
         String productUpdateJson = objectMapper.writeValueAsString(productUpdateDTO);
 
-        Mockito.when(productService.updateProduct(eq(1L), any(ProductUpdateDTO.class))).thenReturn(productOutputDTO);
+        Mockito.when(productService.updateProduct(eq(1L), any(ProductUpdateDto.class))).thenReturn(productOutputDTO);
 
         mockMvc.perform(put("/products/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -190,7 +187,7 @@ public class ProductControllerUnitTest {
 
     @Test
     public void testUpdateProduct_ValidationErrors() throws Exception {
-        ProductUpdateDTO productUpdateDTO = new ProductUpdateDTO();
+        ProductUpdateDto productUpdateDTO = new ProductUpdateDto();
 
         ObjectMapper objectMapper = new ObjectMapper();
         String productUpdateJson = objectMapper.writeValueAsString(productUpdateDTO);

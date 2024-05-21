@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.Entity;
-import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDTO;
+import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDto;
 
 @Entity
 public class CreditCardPayment extends AbstractPaymentMethod {
@@ -35,7 +35,7 @@ public class CreditCardPayment extends AbstractPaymentMethod {
     }
 
     @Override
-    public boolean matchesPaymentDetails(PaymentConfirmationRequestDTO requestDTO) {
+    public boolean matchesPaymentDetails(PaymentConfirmationRequestDto requestDTO) {
         return this.cardNumber.equals(requestDTO.getCardNumber()) &&
                 this.expiryDate.equals(requestDTO.getExpiryDate()) &&
                 this.cvv.equals(requestDTO.getCvv());

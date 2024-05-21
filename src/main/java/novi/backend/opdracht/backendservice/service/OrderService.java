@@ -1,9 +1,9 @@
 package novi.backend.opdracht.backendservice.service;
 
-import novi.backend.opdracht.backendservice.dto.input.CartItemInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.OrderRequestDTO;
-import novi.backend.opdracht.backendservice.dto.output.OrderOutputDTO;
-import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.CartItemInputDto;
+import novi.backend.opdracht.backendservice.dto.input.OrderRequestDto;
+import novi.backend.opdracht.backendservice.dto.output.OrderOutputDto;
+import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDto;
 import novi.backend.opdracht.backendservice.exception.BadRequestException;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.model.*;
@@ -31,17 +31,17 @@ public class OrderService {
         this.authenticationService = authenticationService;
     }
 
-    public void placeOrder(OrderRequestDTO orderRequest) {
+    public void placeOrder(OrderRequestDto orderRequest) {
         User user = authenticationService.getCurrentUser();
         Cart cart = cartService.getUserCart();
         if (cart.getItems().isEmpty()) {
             throw new BadRequestException("Kan geen bestelling plaatsen met een lege winkelwagen");
         }
 
-        List<CartItemInputDTO> cartItems;
+        List<CartItemInputDto> cartItems;
         if (orderRequest.isRetrieveCartItems()) {
             cartItems = cart.getItems().stream()
-                    .map(cartItem -> new CartItemInputDTO(cartItem.getProduct().getProductId(), cartItem.getQuantity()))
+                    .map(cartItem -> new CartItemInputDto(cartItem.getProduct().getProductId(), cartItem.getQuantity()))
                     .collect(Collectors.toList());
         } else {
             cartItems = orderRequest.getCartItems();
@@ -56,7 +56,7 @@ public class OrderService {
 
         double totalPrice = 0.0;
         Long commonDesignerId = null;
-        for (CartItemInputDTO cartItem : cartItems) {
+        for (CartItemInputDto cartItem : cartItems) {
             AbstractProduct product = getProductById(cartItem.getProductId());
             if (product.getInventoryCount() < cartItem.getQuantity()) {
                 throw new BadRequestException("Onvoldoende voorraad voor product: " + product.getProductName());
@@ -104,7 +104,7 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product niet gevonden"));
     }
 
-    public OrderOutputDTO getOrderDetails(Long orderId) {
+    public OrderOutputDto getOrderDetails(Long orderId) {
         User user = authenticationService.getCurrentUser();
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Bestelling niet gevonden"));
@@ -116,7 +116,7 @@ public class OrderService {
         return toOrderOutputDTO(order);
     }
 
-    public List<OrderOutputDTO> getUserOrders() {
+    public List<OrderOutputDto> getUserOrders() {
         User user = authenticationService.getCurrentUser();
         List<Order> userOrders = orderRepository.findByUserUsername(user.getUsername());
 
@@ -176,7 +176,7 @@ public class OrderService {
     }
 
 
-    public ReceiptOutputDTO getReceiptForOrder(Long orderId) {
+    public ReceiptOutputDto getReceiptForOrder(Long orderId) {
         User user = authenticationService.getCurrentUser();
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Bestelling niet gevonden"));
@@ -192,8 +192,8 @@ public class OrderService {
         return toReceiptOutputDTO(receipt);
     }
 
-    private OrderOutputDTO toOrderOutputDTO(Order order) {
-        OrderOutputDTO orderOutputDTO = new OrderOutputDTO();
+    private OrderOutputDto toOrderOutputDTO(Order order) {
+        OrderOutputDto orderOutputDTO = new OrderOutputDto();
         orderOutputDTO.setOrderId(order.getOrderId());
         orderOutputDTO.setUsername(order.getUser().getUsername());
         orderOutputDTO.setAmount(order.getAmount());
@@ -210,8 +210,8 @@ public class OrderService {
         return orderOutputDTO;
     }
 
-    private ReceiptOutputDTO toReceiptOutputDTO(Receipt receipt) {
-        ReceiptOutputDTO outputDTO = new ReceiptOutputDTO();
+    private ReceiptOutputDto toReceiptOutputDTO(Receipt receipt) {
+        ReceiptOutputDto outputDTO = new ReceiptOutputDto();
         outputDTO.setReceiptId(receipt.getReceiptId());
         outputDTO.setDateIssued(receipt.getDateIssued());
         outputDTO.setTotalAmount(receipt.getTotalAmount());

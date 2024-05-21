@@ -2,7 +2,7 @@ package novi.backend.opdracht.backendservice.dto.input;
 
 import jakarta.validation.constraints.*;
 
-public class ProductInputDTO {
+public class ProductInputDto {
 
     @NotBlank(message = "Productnaam mag niet leeg zijn.")
     @Size(max = 255, message = "Productnaam mag maximaal 255 karakters bevatten.")

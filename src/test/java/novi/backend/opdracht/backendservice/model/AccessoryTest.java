@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
-import novi.backend.opdracht.backendservice.dto.input.ProductInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDTO;
+import novi.backend.opdracht.backendservice.dto.input.ProductInputDto;
+import novi.backend.opdracht.backendservice.dto.input.ProductUpdateDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +32,7 @@ public class AccessoryTest {
 
     @Test
     public void testInsertSpecificFields() {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         productInputDTO.setAccessoryType("BELT");
         accessory.insertSpecificFields(productInputDTO);
         assertEquals(AccessoryType.BELT, accessory.getAccessoryType());
@@ -40,7 +40,7 @@ public class AccessoryTest {
 
     @Test
     public void testInsertSpecificFieldsInvalidType() {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         productInputDTO.setAccessoryType("INVALID_TYPE");
         assertThrows(IllegalArgumentException.class, () -> {
             accessory.insertSpecificFields(productInputDTO);
@@ -49,7 +49,7 @@ public class AccessoryTest {
 
     @Test
     public void testUpdateSpecificFields() {
-        ProductUpdateDTO productUpdateDTO = new ProductUpdateDTO();
+        ProductUpdateDto productUpdateDTO = new ProductUpdateDto();
         productUpdateDTO.setAccessoryType("HAT");
         accessory.updateSpecificFields(productUpdateDTO);
         assertEquals(AccessoryType.HAT, accessory.getAccessoryType());
@@ -57,7 +57,7 @@ public class AccessoryTest {
 
     @Test
     public void testUpdateSpecificFieldsInvalidType() {
-        ProductUpdateDTO productUpdateDTO = new ProductUpdateDTO();
+        ProductUpdateDto productUpdateDTO = new ProductUpdateDto();
         productUpdateDTO.setAccessoryType("INVALID_TYPE");
         assertThrows(IllegalArgumentException.class, () -> {
             accessory.updateSpecificFields(productUpdateDTO);
@@ -138,7 +138,7 @@ public class AccessoryTest {
 
     @Test
     public void testInsertCommonFields() {
-        ProductInputDTO productInputDTO = new ProductInputDTO();
+        ProductInputDto productInputDTO = new ProductInputDto();
         productInputDTO.setProductName("testproduct-naam");
         productInputDTO.setProductType("Accessory");
         productInputDTO.setPrice(200.0);
@@ -160,7 +160,7 @@ public class AccessoryTest {
 
     @Test
     public void testUpdateCommonFields() {
-        ProductUpdateDTO productUpdateDTO = new ProductUpdateDTO();
+        ProductUpdateDto productUpdateDTO = new ProductUpdateDto();
         productUpdateDTO.setProductName("Testproductnaam-geupdate");
         productUpdateDTO.setPrice(200.0);
         productUpdateDTO.setInventoryCount(20);

@@ -1,7 +1,7 @@
 package novi.backend.opdracht.backendservice.model;
 
 import jakarta.persistence.*;
-import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDTO;
+import novi.backend.opdracht.backendservice.dto.input.PaymentConfirmationRequestDto;
 
 import java.time.LocalDateTime;
 
@@ -75,7 +75,7 @@ public abstract class AbstractPaymentMethod {
 
     public abstract String getPaymentMethodType();
 
-    public boolean matchesPaymentDetails(PaymentConfirmationRequestDTO requestDTO) {
+    public boolean matchesPaymentDetails(PaymentConfirmationRequestDto requestDTO) {
         return false;
     }
 }

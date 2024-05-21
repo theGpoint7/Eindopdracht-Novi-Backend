@@ -1,11 +1,11 @@
 package novi.backend.opdracht.backendservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import novi.backend.opdracht.backendservice.dto.input.CartItemInputDTO;
-import novi.backend.opdracht.backendservice.dto.input.OrderRequestDTO;
-import novi.backend.opdracht.backendservice.dto.output.OrderOutputDTO;
-import novi.backend.opdracht.backendservice.dto.output.OrderLineOutputDTO;
-import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDTO;
+import novi.backend.opdracht.backendservice.dto.input.CartItemInputDto;
+import novi.backend.opdracht.backendservice.dto.input.OrderRequestDto;
+import novi.backend.opdracht.backendservice.dto.output.OrderOutputDto;
+import novi.backend.opdracht.backendservice.dto.output.OrderLineOutputDto;
+import novi.backend.opdracht.backendservice.dto.output.ReceiptOutputDto;
 import novi.backend.opdracht.backendservice.exception.ResourceNotFoundException;
 import novi.backend.opdracht.backendservice.service.AuthenticationService;
 import novi.backend.opdracht.backendservice.service.OrderService;
@@ -61,14 +61,14 @@ public class OrderControllerUnitTest {
     @Test
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testGetOrderDetails_Success() throws Exception {
-        OrderLineOutputDTO orderLine = new OrderLineOutputDTO();
+        OrderLineOutputDto orderLine = new OrderLineOutputDto();
         orderLine.setOrderLineId(1L);
         orderLine.setProductId(1L);
         orderLine.setProductName("Product Name");
         orderLine.setPrice(100.0);
         orderLine.setQuantity(1);
 
-        OrderOutputDTO orderOutput = new OrderOutputDTO();
+        OrderOutputDto orderOutput = new OrderOutputDto();
         orderOutput.setOrderId(1L);
         orderOutput.setUsername("testuser");
         orderOutput.setOrderLines(Collections.singletonList(orderLine));
@@ -122,18 +122,18 @@ public class OrderControllerUnitTest {
     @Test
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testPlaceOrder_Success() throws Exception {
-        CartItemInputDTO cartItemInputDTO = new CartItemInputDTO();
+        CartItemInputDto cartItemInputDTO = new CartItemInputDto();
         cartItemInputDTO.setProductId(1L);
         cartItemInputDTO.setQuantity(2);
 
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         orderRequestDTO.setRetrieveCartItems(true);
         orderRequestDTO.setCartItems(Collections.singletonList(cartItemInputDTO));
 
         ObjectMapper objectMapper = new ObjectMapper();
         String orderRequestJson = objectMapper.writeValueAsString(orderRequestDTO);
 
-        Mockito.doNothing().when(orderService).placeOrder(any(OrderRequestDTO.class));
+        Mockito.doNothing().when(orderService).placeOrder(any(OrderRequestDto.class));
 
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -146,7 +146,7 @@ public class OrderControllerUnitTest {
     @Test
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testPlaceOrder_ValidationErrors() throws Exception {
-        OrderRequestDTO orderRequestDTO = new OrderRequestDTO();
+        OrderRequestDto orderRequestDTO = new OrderRequestDto();
         orderRequestDTO.setRetrieveCartItems(false);
         orderRequestDTO.setCartItems(Collections.emptyList());
 
@@ -166,14 +166,14 @@ public class OrderControllerUnitTest {
     @Test
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testGetUserOrders_Success() throws Exception {
-        OrderLineOutputDTO orderLine = new OrderLineOutputDTO();
+        OrderLineOutputDto orderLine = new OrderLineOutputDto();
         orderLine.setOrderLineId(1L);
         orderLine.setProductId(1L);
         orderLine.setProductName("Product Name");
         orderLine.setPrice(100.0);
         orderLine.setQuantity(1);
 
-        OrderOutputDTO orderOutput = new OrderOutputDTO();
+        OrderOutputDto orderOutput = new OrderOutputDto();
         orderOutput.setOrderId(1L);
         orderOutput.setUsername("testuser");
         orderOutput.setOrderLines(Collections.singletonList(orderLine));
@@ -292,7 +292,7 @@ public class OrderControllerUnitTest {
     @Test
     @WithMockUser(username = "testuser", roles = "CUSTOMER")
     public void testGetReceiptForOrder_Success() throws Exception {
-        ReceiptOutputDTO receiptOutput = new ReceiptOutputDTO();
+        ReceiptOutputDto receiptOutput = new ReceiptOutputDto();
         Mockito.when(orderService.getReceiptForOrder(1L)).thenReturn(receiptOutput);
 
         mockMvc.perform(get("/orders/1/receipt"))

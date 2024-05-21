@@ -2,9 +2,7 @@ package novi.backend.opdracht.backendservice.dto.input;
 
 import jakarta.validation.constraints.*;
 
-import java.time.LocalDateTime;
-
-public class FeedbackInputDTO {
+public class FeedbackInputDto {
 
     private Long productId;
     private Long designerId;
