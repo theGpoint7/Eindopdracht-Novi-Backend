@@ -1,17 +1,14 @@
-# logging.level.org.springframework.security=DEBUG
-# logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
-
 # JWT
-jwt.secret=2XEewUHw+5Ps1CLPz6pasQrd9QbqmEzTUDGCp7ul2+k=
+jwt.secret=<jouw-SecureStringGenerator-secret-key>
 
 # Applicatie naam
 spring.application.name=backend-service
 
 # Database configuratie
 spring.sql.init.platform=postgres
-spring.datasource.url=jdbc:postgresql://localhost:5432/DesignerShop
-spring.datasource.username=postgres
-spring.datasource.password=admin01
+spring.datasource.url=jdbc:postgresql://<host-naam>:<poort-nummer>/<database-naam>
+spring.datasource.username=<gebruikersnaam-pgAdmin>
+spring.datasource.password=<wachtwoord-database>
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 # JPA configuratie
@@ -25,4 +22,3 @@ spring.jpa.hibernate.ddl-auto=create
 
 spring.sql.init.mode=always
 spring.jpa.defer-datasource-initialization=true
-
