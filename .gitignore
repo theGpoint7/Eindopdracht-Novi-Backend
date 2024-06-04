@@ -1,11 +1,12 @@
 HELP.md
-target/
-out/
-.map/
 
+target/
 !.mvn/wrapper/maven-wrapper.jar
 src/main/resources/application.properties
+
 build/
+out/
+.map/
 
 ### IntelliJ IDEA ###
 .idea
