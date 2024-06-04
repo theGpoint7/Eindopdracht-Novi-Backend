@@ -4,8 +4,7 @@ out/
 .map/
 
 !.mvn/wrapper/maven-wrapper.jar
-/src/main/resources/application.properties
-/target/
+src/main/resources/application.properties
 build/
 
 ### IntelliJ IDEA ###
